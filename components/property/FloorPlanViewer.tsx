@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { motion } from "framer-motion";
 import { ImageIcon, Minus, Plus, RotateCcw } from "lucide-react";
-import type { FloorPlan } from "@/lib/api/types";
+import type { FloorPlan, Room } from "@/lib/api/types";
 import { useApp } from "@/components/providers/AppProvider";
 import { useFormat, useReducedMotion } from "@/lib/hooks";
 import { tr } from "@/lib/i18n/config";
@@ -12,13 +12,57 @@ import { fmt } from "@/lib/i18n";
 const PAD = 4;
 const MIN_K = 1;
 const MAX_K = 4;
+const CHAR_W = 0.56; // average glyph width, in em, used to decide whether a label fits
+const MIN_LABEL_PX = 8.5; // below this on-screen size a label is replaced by the room number
 type View = { k: number; x: number; y: number };
 const HOME: View = { k: 1, x: 0, y: 0 };
 
+type Label = { lines: string[]; fs: number };
+
+/** Largest font size (plan units) at which the name fits the room on one or two lines. */
+function fitLabel(name: string, w: number, h: number): Label {
+  const words = name.split(/\s+/).filter(Boolean);
+  const candidates: string[][] = [[name]];
+  if (words.length > 1) {
+    let best: string[] = [];
+    let bestMax = Infinity;
+    for (let i = 1; i < words.length; i++) {
+      const l1 = words.slice(0, i).join(" ");
+      const l2 = words.slice(i).join(" ");
+      const m = Math.max(l1.length, l2.length);
+      if (m < bestMax) { bestMax = m; best = [l1, l2]; }
+    }
+    candidates.push(best);
+  }
+  let out: Label = { lines: [name], fs: 0 };
+  for (const lines of candidates) {
+    const longest = Math.max(...lines.map((l) => l.length));
+    const fs = Math.min((w - 2.2) / (longest * CHAR_W), (h - 3) / (lines.length * 1.25), 3);
+    if (fs > out.fs) out = { lines, fs };
+  }
+  return out;
+}
+
+/** Quarter-circle door swing on one wall of a room. */
+function doorGeom(r: Room, edge: "top" | "bottom") {
+  const dw = Math.min(4.2, r.w * 0.38);
+  const x = r.x + Math.min(3, r.w * 0.16);
+  const y = edge === "bottom" ? r.y + r.h : r.y;
+  const dir = edge === "bottom" ? -1 : 1;
+  return {
+    gap: `M${x} ${y}H${x + dw}`,
+    leaf: `M${x} ${y}V${y + dir * dw}`,
+    arc: `M${x} ${y + dir * dw}A${dw} ${dw} 0 0 ${edge === "bottom" ? 1 : 0} ${x + dw} ${y}`,
+  };
+}
+
 /**
  * Interactive SVG floor-plan viewer. Rooms are focusable buttons synchronised with a room list.
- * Pan/zoom is plain React state on a <g transform>; the selection outline is a framer-motion rect
- * (one animation system per element). Dimensions are shown only when `room.areaM2` exists.
+ * Pan/zoom is plain React state on a <g transform>; the selection outline is a framer-motion rect;
+ * the wall draw-on and fills are CSS (one animation system per element).
+ * Names are drawn only when they fit at the current zoom, otherwise the list number is shown;
+ * the full name is always in the side list, the tooltip and the aria-label.
+ * Dimensions are shown only when `room.areaM2` exists.
  */
 export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGallery }: { plan: FloorPlan; propertyTitle?: string; className?: string; onShowGallery?: () => void }) {
   const { t, lang } = useApp();
@@ -29,7 +73,11 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
 
   const [floorIdx, setFloorIdx] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
   const [view, setView] = useState<View>(HOME);
+  const [seen, setSeen] = useState(false);
+  const [drawn, setDrawn] = useState(false);
+  const [box, setBox] = useState({ w: 640, h: 480 });
 
   const floor = plan.floors[Math.min(floorIdx, plan.floors.length - 1)];
   const [vw, vh] = floor.viewBox;
@@ -38,11 +86,39 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
   const asset = plan.assets?.[floor.id];
   const room = useMemo(() => floor.rooms.find((r) => r.id === selected) ?? null, [floor, selected]);
 
+  const frameRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
   const pinch = useRef<{ d: number; k: number } | null>(null);
   const suppressClick = useRef(false);
+
+  // Track the frame size (for on-screen label sizes) and start the wall draw-on once visible.
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((es) => {
+      const r = es[0]?.contentRect;
+      if (r && r.width) setBox({ w: r.width, h: r.height });
+    });
+    ro.observe(el);
+    const io = new IntersectionObserver((es) => {
+      if (es[0]?.isIntersecting) { setSeen(true); io.disconnect(); }
+    }, { threshold: 0.25 });
+    io.observe(el);
+    return () => { ro.disconnect(); io.disconnect(); };
+  }, []);
+
+  // Draw on (and re-draw when the floor changes). The state flips in rAF callbacks, never in the effect body.
+  useEffect(() => {
+    if (!seen) return;
+    let r2 = 0;
+    const r1 = requestAnimationFrame(() => { r2 = requestAnimationFrame(() => setDrawn(true)); });
+    return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
+  }, [seen, floorIdx]);
+  const on = reduce || drawn;
+
+  const changeFloor = (i: number) => { setDrawn(false); setFloorIdx(i); setSelected(null); setHover(null); setView(HOME); };
 
   const clamp = useCallback((v: View): View => {
     const k = Math.min(MAX_K, Math.max(MIN_K, v.k));
@@ -58,7 +134,7 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
     });
   }, [W, H, clamp]);
 
-  const reset = () => { setFloorIdx(0); setSelected(null); setView(HOME); };
+  const reset = () => { changeFloor(0); };
 
   const unitsPerPx = () => {
     const r = svgRef.current?.getBoundingClientRect();
@@ -122,6 +198,17 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
   const dims = (a?: number) => (a ? f.area(a) : p.dimsMissing);
   const title = propertyTitle ? fmt(p.planOf, { title: propertyTitle }) : p.label;
 
+  // Geometry derived from the rooms: outer envelope and the row each room sits in.
+  const geo = useMemo(() => {
+    const rs = floor.rooms;
+    if (!rs.length) return { x0: 0, y0: 0, x1: vw, y1: vh };
+    return {
+      x0: Math.min(...rs.map((r) => r.x)), y0: Math.min(...rs.map((r) => r.y)),
+      x1: Math.max(...rs.map((r) => r.x + r.w)), y1: Math.max(...rs.map((r) => r.y + r.h)),
+    };
+  }, [floor, vw, vh]);
+  const ppu = Math.min(box.w / W, box.h / H) * view.k; // on-screen pixels per plan unit
+
   return (
     <section className={`grid gap-4 ${className}`} aria-label={title}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -139,7 +226,7 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
                 aria-selected={i === floorIdx}
                 className="chip min-h-[44px]"
                 data-active={i === floorIdx}
-                onClick={() => { setFloorIdx(i); setSelected(null); setView(HOME); }}
+                onClick={() => changeFloor(i)}
               >{tr(fl.label, lang)}</button>
             ))}
           </div>
@@ -147,8 +234,9 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
-        <div className="relative">
+        <div className="relative min-w-0">
           <div
+            ref={frameRef}
             tabIndex={0}
             role="group"
             aria-label={`${title}. ${p.keysHint}`}
@@ -171,47 +259,104 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
                   {asset ? (
                     <image href={asset} x={0} y={0} width={vw} height={vh} preserveAspectRatio="xMidYMid meet" aria-label={p.suppliedImage} />
                   ) : (
-                    <>
-                      <rect x={0} y={0} width={vw} height={vh} fill="none" stroke="var(--ink)" strokeWidth={0.9} vectorEffect="non-scaling-stroke" />
-                      {floor.rooms.map((r) => {
-                        const on = r.id === selected;
-                        const fs = Math.max(1.6, Math.min(3.2, Math.min(r.w / 5.5, r.h / 3)));
+                    <g key={floor.id}>
+                      {/* 1. room fills + hit areas */}
+                      {floor.rooms.map((r, i) => {
+                        const isOn = r.id === selected;
+                        const isHover = r.id === hover && !isOn;
                         const name = tr(r.name, lang);
+                        const lab = fitLabel(name, r.w, r.h);
+                        const showName = lab.fs * ppu >= MIN_LABEL_PX;
+                        const numFs = Math.max(1.2, Math.min(2.6, Math.min(r.w, r.h) * 0.3));
+                        const showNum = !showName && Math.min(r.w, r.h) * ppu >= 13;
+                        const cx = r.x + r.w / 2;
+                        const cy = r.y + r.h / 2;
                         return (
                           <g
                             key={r.id}
                             role="button"
                             tabIndex={0}
-                            aria-label={`${name}. ${dims(r.areaM2)}`}
-                            aria-pressed={on}
-                            className="cursor-pointer outline-none [&:focus-visible>rect]:stroke-[var(--copper)]"
+                            aria-label={`${f.num(i + 1)}. ${name}. ${dims(r.areaM2)}`}
+                            aria-pressed={isOn}
+                            className="cursor-pointer outline-none [&:focus-visible>rect]:stroke-[var(--copper)] [&:focus-visible>rect]:stroke-[0.9]"
                             onClick={() => pick(r.id)}
+                            onPointerEnter={() => setHover(r.id)}
+                            onPointerLeave={() => setHover((h) => (h === r.id ? null : h))}
                             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setSelected((s) => (s === r.id ? null : r.id)); } }}
                           >
+                            <title>{name}</title>
                             <rect
                               x={r.x} y={r.y} width={r.w} height={r.h}
-                              stroke="var(--ink)" strokeWidth={0.6} vectorEffect="non-scaling-stroke"
-                              style={{ fill: on ? "var(--copper)" : "var(--paper-2)", fillOpacity: on ? 0.28 : 0.55, transition: reduce ? "none" : "fill-opacity .35s, fill .35s" }}
+                              stroke="transparent" strokeWidth={0.4}
+                              style={{
+                                fill: isOn ? "var(--copper)" : "var(--paper-2)",
+                                fillOpacity: isOn ? 0.34 : isHover ? 0.85 : 0.5,
+                                transition: reduce ? "none" : "fill-opacity .7s ease, fill .7s ease",
+                              }}
                             />
-                            <text
-                              x={r.x + r.w / 2} y={r.y + r.h / 2}
-                              textAnchor="middle" dominantBaseline="middle"
-                              fontSize={fs} fill="var(--ink)" style={{ pointerEvents: "none", fontFamily: "var(--f-mono)" }}
-                            >{name}</text>
+                            {showName && (
+                              <text
+                                textAnchor="middle" fontSize={lab.fs} fill="var(--ink)"
+                                style={{ pointerEvents: "none", fontFamily: "var(--f-sans)", fontWeight: 500 }}
+                              >
+                                {lab.lines.map((ln, li) => (
+                                  <tspan key={li} x={cx} y={cy + (li - (lab.lines.length - 1) / 2) * lab.fs * 1.2 + lab.fs * 0.35}>{ln}</tspan>
+                                ))}
+                              </text>
+                            )}
+                            {showNum && (
+                              <g style={{ pointerEvents: "none" }}>
+                                <circle cx={cx} cy={cy} r={numFs * 0.95} fill="var(--surface)" stroke="var(--ink)" strokeWidth={0.25} />
+                                <text x={cx} y={cy + numFs * 0.36} textAnchor="middle" fontSize={numFs} fill="var(--ink)" style={{ fontFamily: "var(--f-mono)", fontVariantNumeric: "tabular-nums" }}>{f.num(i + 1)}</text>
+                              </g>
+                            )}
                           </g>
                         );
                       })}
+
+                      {/* 2. thin inner walls (draw on) */}
+                      <g fill="none" stroke="var(--ink)" strokeWidth={0.35} strokeLinejoin="miter" style={{ pointerEvents: "none" }} aria-hidden>
+                        {floor.rooms.map((r, i) => (
+                          <rect key={r.id} x={r.x} y={r.y} width={r.w} height={r.h} pathLength={1} className="pd-wall" data-on={on ? 1 : 0} style={{ transitionDelay: reduce ? undefined : `${0.25 + i * 0.09}s` }} />
+                        ))}
+                      </g>
+
+                      {/* 3. doors */}
+                      <g className="pd-fade" data-on={on ? 1 : 0} aria-hidden style={{ pointerEvents: "none" }} fill="none">
+                        {floor.rooms.map((r) => {
+                          if (r.w < 9 || r.h < 9) return null;
+                          const bottomRow = Math.abs(r.y + r.h - geo.y1) < 0.1;
+                          const topRow = Math.abs(r.y - geo.y0) < 0.1;
+                          const edge = topRow && !bottomRow ? "bottom" : bottomRow && !topRow ? "top" : "bottom";
+                          const d = doorGeom(r, edge);
+                          return (
+                            <g key={r.id}>
+                              <path d={d.gap} stroke="var(--surface)" strokeWidth={0.95} />
+                              <path d={d.leaf} stroke="var(--ink)" strokeWidth={0.25} />
+                              <path d={d.arc} stroke="var(--ink-mute)" strokeWidth={0.2} strokeDasharray="0.6 0.5" />
+                            </g>
+                          );
+                        })}
+                      </g>
+
+                      {/* 4. thick outer wall */}
+                      <rect
+                        x={geo.x0} y={geo.y0} width={geo.x1 - geo.x0} height={geo.y1 - geo.y0}
+                        fill="none" stroke="var(--ink)" strokeWidth={1.5} strokeLinejoin="miter" pathLength={1}
+                        className="pd-wall" data-on={on ? 1 : 0} style={{ pointerEvents: "none" }} aria-hidden
+                      />
+
                       {room && (
                         <motion.rect
                           aria-hidden
                           pointerEvents="none"
-                          fill="none" stroke="var(--copper)" strokeWidth={2.2} vectorEffect="non-scaling-stroke"
+                          fill="none" stroke="var(--copper)" strokeWidth={0.9}
                           initial={false}
                           animate={{ x: room.x, y: room.y, width: room.w, height: room.h }}
                           transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 220, damping: 26 }}
                         />
                       )}
-                    </>
+                    </g>
                   )}
                 </g>
               </g>
@@ -226,7 +371,7 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
           <p className="annot mt-2">{p.keysHint}</p>
         </div>
 
-        <div className="grid content-start gap-3">
+        <div className="grid min-w-0 content-start gap-3">
           <div aria-live="polite" className="border border-line bg-surface p-3 text-sm">
             <p className="annot">{p.selected}</p>
             {room ? (
@@ -239,20 +384,22 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
             )}
           </div>
           {!asset && (
-            <ul aria-label={p.rooms} className="grid border-t border-line">
+            <ul aria-label={p.rooms} className="grid border-t border-line sm:grid-cols-2 lg:grid-cols-1">
               {floor.rooms.map((r, i) => {
-                const on = r.id === selected;
+                const isOn = r.id === selected;
                 return (
                   <li key={r.id} className="border-b border-line">
                     <button
                       type="button"
-                      aria-pressed={on}
-                      onClick={() => setSelected(on ? null : r.id)}
-                      className={`flex min-h-[44px] w-full items-center gap-3 px-2 py-1.5 text-start text-sm transition-colors ${on ? "bg-copper text-white" : "hover:bg-paper2"}`}
+                      aria-pressed={isOn}
+                      onClick={() => setSelected(isOn ? null : r.id)}
+                      onPointerEnter={() => setHover(r.id)}
+                      onPointerLeave={() => setHover((h) => (h === r.id ? null : h))}
+                      className={`flex min-h-[44px] w-full items-center gap-3 px-2 py-1.5 text-start text-sm transition-colors ${isOn ? "bg-copper text-white" : "hover:bg-paper2"}`}
                     >
-                      <span className="annot !text-inherit num w-6">{f.num(i + 1)}</span>
-                      <span className="grow">{tr(r.name, lang)}</span>
-                      <span className={`annot annot-ar-ok !text-inherit ${on ? "" : "opacity-70"}`}>{r.areaM2 ? f.area(r.areaM2) : "—"}</span>
+                      <span className="annot !text-inherit num w-6 shrink-0">{f.num(i + 1)}</span>
+                      <span className="min-w-0 grow">{tr(r.name, lang)}</span>
+                      {r.areaM2 ? <span className={`annot annot-ar-ok !text-inherit ${isOn ? "" : "opacity-70"}`}>{f.area(r.areaM2)}</span> : null}
                     </button>
                   </li>
                 );

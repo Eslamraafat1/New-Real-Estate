@@ -5,6 +5,7 @@ import { Mail, MessageSquare, Phone } from "lucide-react";
 import { useApp } from "@/components/providers/AppProvider";
 import { Monogram } from "@/components/agents/AgentCard";
 import { tr } from "@/lib/i18n/config";
+import { SectionRule } from "./SectionRule";
 import { usePropertyDetail } from "./PropertyDetailContext";
 
 /** The listing agent (fictional identity; 555 phone and example.com email). */
@@ -14,7 +15,8 @@ export function AgentBlock() {
   const { agent, openDialog } = usePropertyDetail();
   if (!agent) return null;
   return (
-    <section id="agent" aria-labelledby="agent-h" className="scroll-mt-24 border-t border-line py-16 md:py-24">
+    <section id="agent" aria-labelledby="agent-h" className="scroll-mt-32 py-16 md:py-24">
+      <SectionRule className="mb-10" />
       <div className="grid gap-8 md:grid-cols-12">
         <header className="md:col-span-4">
           <p className="annot !text-copper">{a.eyebrow}</p>

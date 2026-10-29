@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarCheck, Download, FileText, LayoutDashboard, MapPin, MessageSquare } from "lucide-react";
 import { useApp } from "@/components/providers/AppProvider";
@@ -38,18 +39,35 @@ export function UtilityActions({ className = "" }: { className?: string }) {
   );
 }
 
-/** Sticky bar for small screens: price + Schedule viewing + Save. */
+/** Sticky bar for small screens: price + Schedule viewing + Save. Sits above the compare tray and hides over the footer. */
 export function MobileActionBar() {
-  const { t } = useApp();
+  const { t, compare } = useApp();
   const { property: p, openDialog } = usePropertyDetail();
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const foot = document.querySelector("footer");
+    if (!foot || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((es) => setHidden(es[0]?.isIntersecting ?? false), { threshold: 0.05 });
+    io.observe(foot);
+    return () => io.disconnect();
+  }, []);
+  const lifted = compare.length > 0;
   return (
-    <div role="region" aria-label={t.property.bar.label} className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 backdrop-blur lg:hidden safe-b">
-      <div className="flex items-center gap-3 px-4 py-2.5">
-        <Price p={p} compact className="display text-xl grow" />
-        <FavButton id={p.id} className="!h-[44px] !w-[44px]" />
-        <button type="button" className="btn btn-primary" onClick={() => openDialog("viewing")}>{t.common.scheduleViewing}</button>
+    <>
+      <div aria-hidden className={`lg:hidden ${lifted ? "h-40" : "h-24"}`} />
+      <div
+        role="region"
+        aria-label={t.property.bar.label}
+        className={`fixed inset-x-0 z-40 border-t border-line bg-paper/95 backdrop-blur transition-transform duration-300 lg:hidden safe-b ${hidden ? "translate-y-full" : ""}`}
+        style={{ bottom: lifted ? "calc(4.9rem + env(safe-area-inset-bottom))" : 0 }}
+      >
+        <div className="flex items-center gap-3 px-4 py-2.5">
+          <Price p={p} compact className="display min-w-0 grow truncate text-xl" />
+          <FavButton id={p.id} className="!h-[44px] !w-[44px] shrink-0" />
+          <button type="button" className="btn btn-primary shrink-0 !px-4" onClick={() => openDialog("viewing")}>{t.common.scheduleViewing}</button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

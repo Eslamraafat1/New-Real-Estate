@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Arrow } from "@/components/ui/Arrow";
 import { Contour } from "@/components/ui/Contour";
 import { getDictionary } from "@/lib/i18n";
-import { href, type Locale } from "@/lib/i18n/config";
+import { href, tr, type Locale } from "@/lib/i18n/config";
 import type { HomeData } from "../types";
+import { ChapterNav, type ChapterRow } from "./fx-a/ChapterNav";
 
 const ROUTES = [
   ["buy", "/buy"],
@@ -13,9 +14,33 @@ const ROUTES = [
   ["developers", "/developments"],
 ] as const;
 
-/** S — The next chapter: five-way typographic navigation on forest. */
-export function NextChapter({ lang }: { data?: HomeData; lang: Locale }) {
+/** S — The next chapter: five-way typographic navigation on forest, with photo previews and a looping tagline. */
+export function NextChapter({ data, lang }: { data?: HomeData; lang: Locale }) {
   const t = getDictionary(lang).home2.next;
+
+  const props = data?.properties ?? [];
+  const sale = props.filter((p) => p.purpose === "sale");
+  const rent = props.filter((p) => p.purpose === "rent");
+  const pick = (p?: (typeof props)[number]) => (p?.images[0] ? { src: p.images[0].src, alt: tr(p.images[0].alt, lang) } : null);
+  const dev = data?.developments[0]?.images[0];
+  const photos = {
+    buy: pick(sale[0] ?? props[0]),
+    rent: pick(rent[0] ?? props[1]),
+    sell: pick(sale[1] ?? sale[0] ?? props[2]),
+    landlords: pick(rent[1] ?? rent[0] ?? props[3]),
+    developers: dev ? { src: dev.src, alt: tr(dev.alt, lang) } : pick(sale[2] ?? props[4]),
+  };
+
+  const rows: ChapterRow[] = ROUTES.map(([k, path]) => ({
+    key: k,
+    to: href(lang, path),
+    k: t.items[k].k,
+    label: t.items[k].label,
+    note: t.items[k].note,
+    blurb: t.items[k].blurb,
+    image: photos[k],
+  }));
+
   return (
     <section id="next-chapter" aria-labelledby="next-h" className="section relative overflow-hidden bg-forest text-onforest">
       <Contour seed={7} rings={12} className="absolute inset-0 size-full stroke-current fill-none text-onforest opacity-20" />
@@ -26,29 +51,14 @@ export function NextChapter({ lang }: { data?: HomeData; lang: Locale }) {
           <p className="max-w-[48ch] text-onforest/80">{t.intro}</p>
         </header>
 
-        <nav aria-label={t.eyebrow} className="mt-14 md:mt-20">
-          <ul className="border-t border-onforest/30">
-            {ROUTES.map(([k, path]) => {
-              const it = t.items[k];
-              return (
-                <li key={k} className="border-b border-onforest/30">
-                  <Link href={href(lang, path)} className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-5 py-5 transition-[padding] duration-300 hover:ps-4 focus-visible:ps-4 md:gap-x-10 md:py-8">
-                    <span className="annot !text-onforest/70">{it.k}</span>
-                    <span className="grid gap-1 md:flex md:items-baseline md:gap-8">
-                      <span className="display text-[clamp(2.5rem,9vw,7rem)] leading-none">{it.label}</span>
-                      <span className="text-sm text-onforest/75 md:text-base">{it.note}</span>
-                    </span>
-                    <Arrow className="size-7 transition-transform duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        <ChapterNav rows={rows} tagline={t.tagline} />
 
-        <p className="mt-10">
-          <Link href={href(lang, "/contact")} className="inline-flex items-center gap-2 underline underline-offset-4 hover:no-underline">{t.contact}<Arrow /></Link>
-        </p>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-x-8 gap-y-6 md:mt-16">
+          <p className="max-w-[36ch] text-onforest/80">{t.contact}</p>
+          <Link href={href(lang, "/contact")} data-magnetic className="btn btn-copper min-h-16 px-8 text-base">
+            {t.advisor}<Arrow />
+          </Link>
+        </div>
       </div>
     </section>
   );

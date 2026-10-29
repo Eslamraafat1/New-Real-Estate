@@ -1,0 +1,87 @@
+/* ==========================================================================
+   Property detail — cinematic layer. Plain CSS, tokens only, logical properties.
+   Imported once from app/[lang]/properties/[slug]/page.tsx.
+   Every effect here is CSS-driven; GSAP (hero only) never touches the same element.
+   ========================================================================== */
+
+.pd-root { --pd-gut: clamp(16px, 4vw, 56px); }
+
+/* ---------- hero: word-by-word masked title ---------- */
+.pd-w { display: inline-block; overflow: hidden; vertical-align: top; padding-block: 0.1em 0.14em; margin-block: -0.1em -0.14em; }
+.pd-w > span { display: inline-block; transform: translateY(112%); animation: pd-word-up 1s cubic-bezier(0.2, 0.75, 0.15, 1) forwards; }
+@keyframes pd-word-up { to { transform: none; } }
+
+.pd-outline { color: transparent; -webkit-text-stroke: 1px var(--ink-mute); paint-order: stroke fill; }
+.pd-outline-soft { color: transparent; -webkit-text-stroke: 1px var(--line); }
+
+.pd-dot { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--copper); }
+.pd-dot::after { content: ""; position: absolute; inset: -4px; border-radius: 999px; border: 1px solid var(--copper); animation: pd-ping 2.2s ease-out infinite; }
+@keyframes pd-ping { from { transform: scale(0.4); opacity: 0.9; } to { transform: scale(1.6); opacity: 0; } }
+
+/* ---------- section index ---------- */
+.pd-pill { scroll-snap-align: center; }
+.pd-rail-item .pd-rail-label { opacity: 0; transform: translateX(-6px); transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
+html[dir="rtl"] .pd-rail-item .pd-rail-label { transform: translateX(6px); }
+.pd-rail-item:hover .pd-rail-label, .pd-rail-item:focus-visible .pd-rail-label, .pd-rail-item[aria-current="true"] .pd-rail-label { opacity: 1; transform: none; }
+
+/* ---------- masks / reveals (parent gets .in-view from <Reveal>) ---------- */
+.pd-mask { clip-path: inset(0 0 100% 0); transition: clip-path 1.5s cubic-bezier(0.65, 0, 0.2, 1); }
+.pd-mask-x { clip-path: inset(0 100% 0 0); transition: clip-path 1.5s cubic-bezier(0.65, 0, 0.2, 1); }
+html[dir="rtl"] .pd-mask-x { clip-path: inset(0 0 0 100%); }
+.pd-mask-circle { clip-path: circle(0% at 50% 50%); transition: clip-path 1.6s cubic-bezier(0.65, 0, 0.2, 1); }
+.in-view .pd-mask, .in-view .pd-mask-x, .in-view .pd-mask-circle, .pd-mask.in-view, .pd-mask-x.in-view { clip-path: inset(0 0 0 0); }
+.in-view .pd-mask-circle { clip-path: circle(75% at 50% 50%); }
+.pd-mask-img { transform: scale(1.28); transition: transform 2s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.in-view .pd-mask-img { transform: none; }
+
+.pd-rise { opacity: 0; transform: translateY(28px); transition: opacity 0.9s ease 0.25s, transform 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s; }
+.in-view .pd-rise { opacity: 1; transform: none; }
+
+.pd-qmark { font-family: var(--f-display); line-height: 0.6; color: var(--copper); }
+
+/* ---------- gallery filmstrip ---------- */
+.pd-bleed { margin-inline: calc(-1 * var(--pd-gut)); padding-inline: var(--pd-gut); scroll-padding-inline: var(--pd-gut); }
+.pd-strip { scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.pd-strip::-webkit-scrollbar { display: none; }
+.pd-strip[data-drag="1"] { scroll-snap-type: none; scroll-behavior: auto; cursor: grabbing; }
+.pd-strip[data-drag="1"] * { user-select: none; }
+@media (hover: hover) and (pointer: fine) { .pd-strip { cursor: grab; } }
+
+/* ---------- light study ---------- */
+.pd-range { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; cursor: pointer; touch-action: pan-y; }
+.pd-range::-webkit-slider-runnable-track { height: 6px; background: var(--pd-track, var(--line)); border: 1px solid var(--line); }
+.pd-range::-moz-range-track { height: 6px; background: var(--pd-track, var(--line)); border: 1px solid var(--line); }
+.pd-range::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -12px; border-radius: 999px; background: var(--copper); border: 3px solid var(--paper); box-shadow: 0 0 0 1px var(--ink); }
+.pd-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 999px; background: var(--copper); border: 3px solid var(--paper); box-shadow: 0 0 0 1px var(--ink); }
+.pd-range:focus-visible { outline: 2px solid var(--copper); outline-offset: 4px; }
+
+/* ---------- walking-radius rings ---------- */
+.pd-rings { container-type: size; }
+.pd-ring { position: absolute; inset: 0; margin: auto; aspect-ratio: 1; border-radius: 999px; border: 1px solid var(--copper); pointer-events: none; }
+.pd-ring--static { border-style: dashed; opacity: 0.55; }
+.pd-ring--pulse { animation: pd-ring 5.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; opacity: 0; }
+@keyframes pd-ring { 0% { transform: scale(0.12); opacity: 0.85; } 100% { transform: scale(1); opacity: 0; } }
+
+/* ---------- floor plan ---------- */
+.pd-wall { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.6s cubic-bezier(0.65, 0, 0.35, 1); }
+.pd-wall[data-on="1"] { stroke-dashoffset: 0; }
+.pd-fade { opacity: 0; transition: opacity 0.8s ease 0.9s; }
+.pd-fade[data-on="1"] { opacity: 1; }
+
+/* ---------- no-JS and reduced motion: everything visible ---------- */
+@media (scripting: none) {
+  .pd-mask, .pd-mask-x, .pd-mask-circle { clip-path: none; }
+  .pd-mask-img { transform: none; }
+  .pd-rise { opacity: 1; transform: none; }
+  .draw { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pd-w > span { transform: none; animation: none; }
+  .pd-mask, .pd-mask-x, .pd-mask-circle { clip-path: none; }
+  .pd-mask-img { transform: none; }
+  .pd-rise { opacity: 1; transform: none; }
+  .pd-ring--pulse { animation: none; opacity: 0.35; transform: scale(0.6); }
+  .pd-dot::after { animation: none; }
+  .pd-wall { stroke-dashoffset: 0; transition: none; }
+  .pd-fade { opacity: 1; transition: none; }
+}

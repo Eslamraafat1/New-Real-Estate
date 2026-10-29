@@ -108,9 +108,9 @@ export function PropertyCard({ p, variant = "standard", priority, selected, onHo
 
   if (variant === "compact") {
     return (
-      <article {...hover} className={`group relative flex gap-3 border border-line bg-surface p-2 ${ring} ${selected ? "bg-paper2" : ""} ${className}`}>
+      <article {...hover} className={`group relative flex min-w-0 gap-3 border border-line bg-surface p-2 ${ring} ${selected ? "bg-paper2" : ""} ${className}`}>
         {image("w-24 shrink-0 aspect-square", "96px")}
-        <div className="grid min-w-0 flex-1 content-between gap-1 py-0.5">
+        <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-between gap-1 py-0.5">
           <div>
             <div className="annot truncate">{p.ref} · {loc}</div>
             <h3 className="truncate font-semibold">{titleLink}</h3>
@@ -154,11 +154,11 @@ export function PropertyCard({ p, variant = "standard", priority, selected, onHo
   }
 
   return (
-    <article {...hover} className={`group relative grid content-start gap-3 ${ring} ${className}`}>
+    <article {...hover} className={`group relative grid min-w-0 content-start gap-3 ${ring} ${className}`}>
       {image("aspect-[4/3]", sizes ?? "(min-width:1280px) 28vw, (min-width:640px) 45vw, 100vw")}
       <div className="absolute start-3 top-3"><Badges p={p} /></div>
       <div className="grid gap-1.5">
-        <div className="flex items-baseline justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3">
           <span className="annot">{p.ref} · {t.labels.type[p.type]}</span>
           <span className="annot truncate">{loc}</span>
         </div>

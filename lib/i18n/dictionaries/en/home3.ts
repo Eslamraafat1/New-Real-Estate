@@ -1,0 +1,40 @@
+export const home3 = {
+  shape: {
+    tower: "Progress tower, sample",
+    built: "built",
+    ground: "Ground",
+    ruler: "Survey ruler",
+    open: "Open the file",
+  },
+  sky: {
+    panel: "Elevator, floors of the penthouses",
+    floor: "Floor",
+    goTo: "Go to floor {n}",
+    dusk: "Dusk over Meridian Bay",
+    glass: "Asking",
+  },
+  slow: {
+    constellation: "Outdoor life",
+    notes: "Notes from the garden",
+    also: "More landscapes",
+    hours: "Morning to dusk",
+  },
+  numbers: {
+    sheet: "Monthly statement",
+    sample: "Sample",
+    ref: "Illustrative worksheet",
+    median: "Median asking price",
+    deposit: "Deposit at 20%",
+    borrow: "Amount to borrow",
+    notes: "Notes in the margin",
+    tear: "Tear here, then move the sliders",
+  },
+  people: {
+    sheet: "Contact sheet",
+    contact: "Contact",
+    close: "Close",
+    call: "Call",
+    email: "Email",
+    profile: "View profile",
+  },
+};

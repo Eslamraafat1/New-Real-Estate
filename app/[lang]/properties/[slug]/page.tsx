@@ -12,7 +12,9 @@ import { PropertyHero } from "@/components/property/PropertyHero";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
 import { MobileActionBar, SideCard } from "@/components/property/PropertyActions";
 import { AgentBlock } from "@/components/property/AgentBlock";
-import { DevelopmentLink, EssentialsSection, NeighborhoodSection, PlansSection, SpecsSection, StorySections } from "@/components/property/PropertyDetailSections";
+import { DevelopmentLink, EssentialsSection, FinanceSection, NeighborhoodSection, PlansSection, SpecsSection, StorySections, buildSections, sectionNumbers } from "@/components/property/PropertyDetailSections";
+import { SectionIndex } from "@/components/property/SectionIndex";
+import "@/components/property/property-fx.css";
 
 export async function generateStaticParams() {
   const slugs = await getPropertySlugs();
@@ -59,22 +61,26 @@ export default async function PropertyPage({ params }: PageProps<"/[lang]/proper
     p.developmentId ? getDevelopment(p.developmentId) : Promise.resolve(null),
   ]);
   const t = getDictionary(lang);
+  const sections = buildSections(p, lang, { hasAgent: !!agent });
+  const nums = sectionNumbers(sections, lang);
 
   return (
     <PropertyDetailProvider property={p} agent={agent}>
-      <article className="pb-24 lg:pb-0">
+      <article className="pd-root">
         <PropertyHero />
+        <SectionIndex items={sections} />
         <PropertyGallery />
         <div className="wrap grid gap-x-12 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="min-w-0">
-            <EssentialsSection p={p} lang={lang} />
+            <EssentialsSection p={p} lang={lang} num={nums.essentials} />
             {dev && <DevelopmentLink dev={dev} lang={lang} />}
-            <StorySections p={p} lang={lang} />
-            <PlansSection p={p} lang={lang} />
-            <NeighborhoodSection p={p} hood={hood} lang={lang} />
-            <SpecsSection p={p} lang={lang} />
+            <StorySections p={p} lang={lang} nums={nums} />
+            <PlansSection p={p} lang={lang} num={nums.plans} />
+            <FinanceSection p={p} lang={lang} num={nums.finance} />
+            <NeighborhoodSection p={p} hood={hood} lang={lang} num={nums.neighborhood} />
+            <SpecsSection p={p} lang={lang} num={nums.specs} />
           </div>
-          <div className="hidden pt-16 lg:block"><SideCard /></div>
+          <div className="hidden pt-24 lg:block"><SideCard /></div>
         </div>
         <div className="wrap"><AgentBlock /></div>
         {similar.length > 0 && (

@@ -63,7 +63,7 @@ export function HomeAtlas({ data }: { data: HomeData; lang: Locale }) {
           </div>
         </Reveal>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-8">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-8">
           <div className="relative h-[56vh] min-h-[380px] border border-line bg-surface lg:h-[720px]">
             <MapView
               className="h-full w-full"
@@ -77,7 +77,7 @@ export function HomeAtlas({ data }: { data: HomeData; lang: Locale }) {
             />
           </div>
 
-          <div className="grid content-start gap-5 lg:max-h-[720px] lg:overflow-y-auto lg:pe-1">
+          <div className="grid grid-cols-[minmax(0,1fr)] content-start gap-5 lg:max-h-[720px] lg:overflow-y-auto lg:pe-1">
             {/* neighborhood quick-pick */}
             <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="group" aria-label={h.areas}>
               {data.neighborhoods.map((n) => (
@@ -114,7 +114,7 @@ export function HomeAtlas({ data }: { data: HomeData; lang: Locale }) {
               </AnimatePresence>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
               <p className="annot">{area ? fmt(h.inArea, { area: tr(areaObj?.name, lang) }) : h.featuredList}</p>
               {list.length === 0 && <p className="text-sm text-soft">{h.noneHere}</p>}
               {list.map((p) => (

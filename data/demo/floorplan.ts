@@ -16,22 +16,43 @@ const N = {
 const bed = (i: number): L => ({ en: i === 1 ? "Primary bedroom" : `Bedroom ${i}`, ar: i === 1 ? "غرفة النوم الرئيسية" : `غرفة النوم ${i}` });
 const bath = (i: number): L => ({ en: `Bathroom ${i}`, ar: `الحمام ${i}` });
 
-/** Lay specs into two proportional rows inside a 100×70 box. */
-function layout(floorId: string, specs: Spec[]): Room[] {
-  const half = Math.ceil(specs.length / 2);
-  const rows = [specs.slice(0, half), specs.slice(half)].filter((r) => r.length);
+/** Plan frame: the outer wall sits 2 units inside the viewBox; rooms tile the interior exactly (shared walls). */
+const FRAME = { x: 2, y: 2, w: 96 };
+const round = (n: number) => Math.round(n * 100) / 100;
+
+/** Split specs into `rows` runs of near-equal total weight, keeping order (public rooms first, then private). */
+function splitRows(specs: Spec[], rows: number): Spec[][] {
+  const total = specs.reduce((s, r) => s + r.w, 0);
+  const out: Spec[][] = Array.from({ length: rows }, () => []);
+  let acc = 0;
+  specs.forEach((sp) => {
+    const mid = acc + sp.w / 2;
+    out[Math.min(rows - 1, Math.floor((mid / total) * rows))].push(sp);
+    acc += sp.w;
+  });
+  return out.filter((r) => r.length);
+}
+
+/**
+ * Lay specs into 1-3 balanced rows. Each width blends an equal share (65%) with the weight share (35%)
+ * so narrow rooms (entry, baths) never collapse into slivers. Row height is fixed per row count.
+ */
+function layout(floorId: string, specs: Spec[]): { rooms: Room[]; viewBox: [number, number] } {
+  const rowCount = specs.length <= 4 ? 1 : specs.length <= 8 ? 2 : 3;
+  const rows = splitRows(specs, rowCount);
+  const rh = rows.length === 1 ? 40 : rows.length === 2 ? 30 : 26;
   const rooms: Room[] = [];
-  const rh = 70 / rows.length;
   rows.forEach((row, ri) => {
     const total = row.reduce((s, r) => s + r.w, 0);
-    let x = 0;
-    row.forEach((r) => {
-      const w = (r.w / total) * 100;
-      rooms.push({ id: `${floorId}-${r.key}`, name: r.name, x: x + 0.5, y: ri * rh + 0.5, w: w - 1, h: rh - 1 });
+    let x = FRAME.x;
+    row.forEach((r, i) => {
+      const share = 0.65 / row.length + 0.35 * (r.w / total);
+      const w = i === row.length - 1 ? FRAME.x + FRAME.w - x : share * FRAME.w;
+      rooms.push({ id: `${floorId}-${r.key}`, name: r.name, x: round(x), y: FRAME.y + ri * rh, w: round(w), h: rh });
       x += w;
     });
   });
-  return rooms;
+  return { rooms, viewBox: [100, FRAME.y * 2 + rh * rows.length] };
 }
 
 /**
@@ -57,14 +78,14 @@ export function makeFloorPlan(bedrooms: number, bathrooms: number, floors: numbe
   for (let i = 0; i < groundBeds; i++) ground.push({ key: `bed${bi}`, name: bed(bi++), w: 2 });
   const groundBaths = floors > 1 ? Math.max(1, Math.floor(bathrooms / 3)) : bathrooms;
   for (let i = 0; i < groundBaths; i++) ground.push({ key: `bath${ba}`, name: bath(ba++), w: 1 });
-  out.push({ id: "f0", label: { en: floors > 1 ? "Ground floor" : "Floor plan", ar: floors > 1 ? "الطابق الأرضي" : "المخطط" }, viewBox: [100, 70], rooms: layout("f0", ground) });
+  out.push({ id: "f0", label: { en: floors > 1 ? "Ground floor" : "Floor plan", ar: floors > 1 ? "الطابق الأرضي" : "المخطط" }, ...layout("f0", ground) });
 
   if (floors > 1) {
     const upper: Spec[] = [{ key: "landing", name: N.landing, w: 1 }];
     for (let i = 0; i < upperBeds; i++) upper.push({ key: `bed${bi}`, name: bed(bi++), w: 2.5 });
     upper.push({ key: "study", name: N.study, w: 1.6 });
     for (let i = ba; i <= bathrooms; i++) upper.push({ key: `bath${i}`, name: bath(i), w: 1.2 });
-    out.push({ id: "f1", label: { en: "Upper floor", ar: "الطابق العلوي" }, viewBox: [100, 70], rooms: layout("f1", upper) });
+    out.push({ id: "f1", label: { en: "Upper floor", ar: "الطابق العلوي" }, ...layout("f1", upper) });
   }
   return { demo: true, floors: out };
 }

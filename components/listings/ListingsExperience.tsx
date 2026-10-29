@@ -224,7 +224,7 @@ export function ListingsExperience({ areas, lockPurpose, variant = "listings" }:
   }
 
   return (
-    <div className="wrap grid gap-8 pb-16 lg:grid-cols-[290px_minmax(0,1fr)]">
+    <div className="wrap grid grid-cols-[minmax(0,1fr)] gap-8 pb-16 lg:grid-cols-[290px_minmax(0,1fr)]">
       <aside className="hidden self-start lg:sticky lg:top-[calc(var(--header-h)+16px)] lg:block lg:max-h-[calc(100dvh-var(--header-h)-32px)] lg:overflow-auto lg:pe-3" aria-label={t.listings.filters}>
         <div className="mb-4 flex items-center justify-between"><h2 className="label !mb-0">{t.listings.filters}</h2>{filterKeys.length > 0 && <button type="button" className="annot underline underline-offset-4" onClick={clearAll}>{t.listings.clearAll}</button>}</div>
         <FilterPanel query={query} onChange={(p) => update(p)} areas={areas} resetKey={resetKey} hidePurpose={!!lockPurpose} />

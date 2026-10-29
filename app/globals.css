@@ -260,7 +260,8 @@ html[lang="ar"] .label { letter-spacing: 0; font-size: 0.85rem; text-transform: 
 .scroll-ruler__track { position: absolute; inset-block: 0; inset-inline-end: 0; width: 10px; background: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px 12px); border-inline-end: 1px solid var(--line); }
 .scroll-ruler__thumb { position: absolute; inset-inline-end: -1px; width: 0; height: 0; transition: top 0.12s linear; }
 .scroll-ruler__thumb::before { content: ""; position: absolute; inset-inline-end: 0; top: -1px; width: 22px; height: 2px; background: var(--copper); }
-.scroll-ruler__thumb > span { position: absolute; inset-inline-end: 28px; white-space: nowrap; text-align: end; }
+.scroll-ruler__thumb > span { position: absolute; inset-inline-end: 28px; white-space: nowrap; text-align: end; display: none; }
+@media (min-width: 1700px) { .scroll-ruler__thumb > span { display: block; } }
 .scroll-ruler__thumb > span:first-child { top: -16px; }
 .scroll-ruler__thumb > span:last-child { top: -1px; font-size: 0.6rem; text-transform: uppercase; }
 

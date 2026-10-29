@@ -1,0 +1,46 @@
+/* fx-b: cinematic layer for the late homepage sections.
+   Hidden "pre-reveal" states only apply when JS has armed the wrapper ([data-armed]), so content is visible without JS. */
+
+/* rise / fade */
+.fxb-rise { transition: opacity 1s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms), transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms); }
+[data-armed]:not([data-in]) .fxb-rise { opacity: 0; transform: translateY(36px); }
+
+/* clip-path curtain over a photograph (wipes from the inline-start edge) */
+.fxb-curtain { clip-path: inset(0 0 0 0); transition: clip-path 1.5s cubic-bezier(0.7, 0, 0.2, 1) var(--d, 0ms); }
+.fxb-curtain > * { transition: transform 2.2s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms); }
+[data-armed]:not([data-in]) .fxb-curtain { clip-path: inset(0 100% 0 0); }
+html[dir="rtl"] [data-armed]:not([data-in]) .fxb-curtain { clip-path: inset(0 0 0 100%); }
+[data-armed]:not([data-in]) .fxb-curtain > * { transform: scale(1.25); }
+
+/* progress tower: the filled silhouette rises from the ground to --p (0-100) */
+.fxb-tower-fill { clip-path: inset(calc(100% - var(--p, 0) * 1%) 0 0 0); transition: clip-path 2.4s cubic-bezier(0.6, 0, 0.2, 1) var(--d, 0ms); }
+[data-armed]:not([data-in]) .fxb-tower-fill { clip-path: inset(100% 0 0 0); }
+.fxb-tower-line { bottom: calc(var(--p, 0) * 1%); transition: bottom 2.4s cubic-bezier(0.6, 0, 0.2, 1) var(--d, 0ms); }
+[data-armed]:not([data-in]) .fxb-tower-line { bottom: 0; }
+
+/* survey ruler spine */
+.fxb-spine { transform-origin: top; transition: transform 1.8s cubic-bezier(0.6, 0, 0.2, 1) var(--d, 0ms); }
+[data-armed]:not([data-in]) .fxb-spine { transform: scaleY(0); }
+
+/* very slow Ken Burns + floating glyphs (desktop only, off for reduced motion) */
+@keyframes fxb-drift { from { transform: scale(1.03) translate3d(0, 0, 0); } to { transform: scale(1.16) translate3d(-2.5%, -2%, 0); } }
+@keyframes fxb-drift-rtl { from { transform: scale(1.03) translate3d(0, 0, 0); } to { transform: scale(1.16) translate3d(2.5%, -2%, 0); } }
+@keyframes fxb-float { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -12px, 0); } }
+@keyframes fxb-twinkle { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@media (min-width: 768px) {
+  .fxb-kb { animation: fxb-drift 52s ease-in-out infinite alternate; will-change: transform; }
+  html[dir="rtl"] .fxb-kb { animation-name: fxb-drift-rtl; }
+  .fxb-float { animation: fxb-float var(--fd, 9s) ease-in-out var(--fl, 0s) infinite; }
+}
+.fxb-twinkle { animation: fxb-twinkle var(--fd, 5s) ease-in-out var(--fl, 0s) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .fxb-kb, .fxb-float, .fxb-twinkle { animation: none !important; }
+}
+
+/* day -> dusk wash, driven by --wash (0..1) */
+.fxb-wash { --wash: 0.3; background: color-mix(in oklab, var(--copper) calc(var(--wash) * 24%), var(--paper)); }
+.fxb-orb { inset-inline-start: calc(6% + var(--wash) * 70%); top: calc(6% + (var(--wash) - 0.5) * (var(--wash) - 0.5) * 70%); background: radial-gradient(circle, var(--copper), transparent 68%); opacity: calc(0.35 + var(--wash) * 0.55); }
+
+/* receipt perforation (page background must be --paper) */
+.fxb-perf { height: 12px; background-color: var(--surface); background-image: radial-gradient(circle at 9px 0, var(--paper) 6px, transparent 6.6px); background-size: 18px 12px; background-repeat: repeat-x; }
+.fxb-perf-b { background-image: radial-gradient(circle at 9px 12px, var(--paper) 6px, transparent 6.6px); }

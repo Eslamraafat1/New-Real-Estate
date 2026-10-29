@@ -43,3 +43,10 @@ Next.js 16.4.3 (App Router, Cache Components, Turbopack), React 19.3, Tailwind v
 
 ## Remaining work for production
 Real backend + auth/authorization/audit (see `docs/BACKEND_INTEGRATION.md`), real map provider, real photography and floor-plan assets, legal review of privacy/terms, e2e + accessibility audit (axe, screen-reader pass), performance budgeting, analytics/consent.
+
+## Update — creative pass (motion layer + cinematic sections)
+- Added: first-visit preloader, scroll ruler, ring cursor, magnetic buttons, 3D-tilt cards, heading reveals, stats band, coordinate marquee.
+- Homepage sections I–S rebuilt: pinned horizontal film strip (Collection), construction "progress towers" (Spaces taking shape), dusk skyline with elevator panel (Above the city), day→dusk wash (Slower living), receipt-style calculator, overlapping contact sheet, cursor-follow five-way navigator.
+- Property detail rebuilt: kinetic hero, sticky section index, interactive light study (day-cycle slider), count-up ledger, per-chapter editorial layouts, filmstrip gallery, monthly-cost section, walking-radius rings, cleaner floor plans (walls, door swings, labels that never overlap).
+- Validation this pass (real Chrome via DevTools protocol, production build): found and fixed a runtime crash (GSAP `onUpdate` referencing a `const` before init in the film strip) and mobile horizontal overflow (implicit grid columns). Re-audited document width at 320/360/390/430/768 px on 20+ routes in EN and AR: no horizontal overflow, no console errors on the checked pages. Screenshots reviewed at 1440 px and 390 px.
+- Still not tested: touch gestures on a real device, reduced-motion visual pass, dark-theme visual pass, Lighthouse.
