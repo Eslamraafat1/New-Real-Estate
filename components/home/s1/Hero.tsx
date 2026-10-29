@@ -34,14 +34,15 @@ function useAnnotations(p: Property | undefined): Pin[] {
   ];
 }
 
-function Headline({ pinned }: { pinned: boolean }) {
+function Headline(props: { pinned: boolean }) {
+  void props;
   const { t } = useApp();
   return (
-    <div className={pinned ? "grid max-w-[22ch] gap-5 sm:max-w-[26ch]" : "grid max-w-[18ch] gap-5"}>
+    <div className="grid max-w-[46rem] gap-5">
       <p className="annot !text-copper">A / 01 — {t.home.hero.kicker}</p>
       <h1 className="grid gap-4">
         <span className="annot !text-ink">{t.common.brand}</span>
-        <span className="display h-xl text-balance">{t.common.tagline}</span>
+        <span className="display h-xl max-w-[15ch] text-balance">{t.common.tagline}</span>
       </h1>
       <p className="max-w-[44ch] text-pretty text-soft">{t.home.hero.sub}</p>
     </div>
@@ -200,7 +201,7 @@ function HeroPinned({ hero, pins }: { hero?: Property; pins: Pin[] }) {
         {/* blueprint frame */}
         <div className="hero-frame pointer-events-none absolute inset-x-[24%] inset-y-[16%] grid place-items-center text-ink" aria-hidden>
           <BuildingElevation hidden className="h-full w-full" />
-          <span className="annot absolute bottom-0 start-0 translate-y-6">{t.home.hero.elevation}</span>
+          <span className="annot absolute bottom-0 end-0 translate-y-6">{t.home.hero.elevation}</span>
         </div>
 
         {/* photograph, revealed by clip-path */}

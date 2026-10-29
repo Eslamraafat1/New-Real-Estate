@@ -303,3 +303,16 @@ export const footer = {
   hours: "Mon–Sat · 9:00–18:00",
   indexTitle: "The atlas index",
 };
+
+export const fx = {
+  open: "Open",
+  ruler: "Scroll position",
+  charting: "Charting the atlas",
+  skip: "Skip",
+  marquee: "Neighborhoods of Meridian Bay with illustrative coordinates",
+  statsLabel: "The atlas in numbers",
+  statListings: "Sample listings",
+  statHoods: "Neighborhoods",
+  statDevs: "Developments",
+  statLangs: "Languages",
+};

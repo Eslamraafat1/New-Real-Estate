@@ -305,3 +305,16 @@ export const footer: typeof En.footer = {
   hours: "السبت–الخميس · 9:00–18:00",
   indexTitle: "فهرس الأطلس",
 };
+
+export const fx: typeof En.fx = {
+  open: "فتح",
+  ruler: "موضع التمرير",
+  charting: "نرسم الأطلس",
+  skip: "تخطّي",
+  marquee: "أحياء خليج ميريديان بإحداثيات توضيحية",
+  statsLabel: "الأطلس بالأرقام",
+  statListings: "عقار تجريبي",
+  statHoods: "حي",
+  statDevs: "مشروع",
+  statLangs: "لغتان",
+};

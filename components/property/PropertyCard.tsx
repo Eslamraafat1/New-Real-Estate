@@ -85,7 +85,7 @@ export function PropertyCard({ p, variant = "standard", priority, selected, onHo
 
   if (variant === "poster") {
     return (
-      <article {...hover} className={`group relative isolate overflow-hidden bg-ink text-white ${ring} ${className}`}>
+      <article data-tilt {...hover} className={`group relative isolate overflow-hidden bg-ink text-white ${ring} ${className}`}>
         <div className="relative aspect-[4/5] sm:aspect-[3/4]">
           <AtlasImage src={cover.src} alt={tr(cover.alt, lang)} fill sizes={sizes ?? "(min-width:1024px) 33vw, 90vw"} priority={priority} className="img-hover object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />

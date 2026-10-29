@@ -1,3 +1,4 @@
+import { CoordinateMarquee, StatsBand } from "@/components/fx/AtlasBands";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/lib/i18n/config";
@@ -44,8 +45,10 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   return (
     <>
       <Hero data={data} lang={lang} />
+      <StatsBand data={data} lang={lang} />
       <FindCoordinates data={data} lang={lang} />
       <HomeAtlas data={data} lang={lang} />
+      <CoordinateMarquee data={data} lang={lang} />
       <PlacesWithPOV data={data} lang={lang} />
       <ArchitectureInMotion data={data} lang={lang} />
       <CityFloorPlan data={data} lang={lang} />

@@ -6,6 +6,10 @@ import { AppProvider } from "@/components/providers/AppProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CompareTray } from "@/components/layout/CompareTray";
+import { FxRoot } from "@/components/fx/FxRoot";
+import { CursorFx } from "@/components/fx/CursorFx";
+import { ScrollRuler } from "@/components/fx/ScrollRuler";
+import { Preloader } from "@/components/fx/Preloader";
 import { dirOf, isLocale, locales } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n";
 import { apiConfig } from "@/lib/api/config";
@@ -42,7 +46,7 @@ export const viewport: Viewport = {
 };
 
 // Runs before first paint: resolves the stored / system theme so there is no flash.
-const themeScript = `(function(){try{var p=localStorage.getItem('atlas-theme');p=p?JSON.parse(p):'system';var d=p==='dark'||(p==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light'}catch(e){}})()`;
+const themeScript = `(function(){try{var p=localStorage.getItem('atlas-theme');p=p?JSON.parse(p):'system';var d=p==='dark'||(p==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light'}catch(e){}try{var s=location.pathname.split('/').filter(Boolean);if(s.length<=1&&!sessionStorage.getItem('atlas-intro')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.dataset.intro='1'}catch(e){}})()`;
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   const { lang } = await params;
@@ -60,6 +64,10 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
           <main id="main">{children}</main>
           <Footer />
           <CompareTray />
+          <FxRoot />
+          <CursorFx />
+          <ScrollRuler />
+          <Preloader />
         </AppProvider>
       </body>
     </html>
