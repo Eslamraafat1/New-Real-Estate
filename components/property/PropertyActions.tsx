@@ -58,7 +58,7 @@ export function MobileActionBar() {
       <div
         role="region"
         aria-label={t.property.bar.label}
-        className={`fixed inset-x-0 z-40 border-t border-line bg-paper/95 backdrop-blur transition-transform duration-300 lg:hidden safe-b ${hidden ? "translate-y-full" : ""}`}
+        className={`fixed inset-x-0 z-40 border-t border-line bg-paper transition-transform duration-300 lg:hidden safe-b ${hidden ? "translate-y-full" : ""}`}
         style={{ bottom: lifted ? "calc(4.9rem + env(safe-area-inset-bottom))" : 0 }}
       >
         <div className="flex items-center gap-3 px-4 py-2.5">

@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Bookmark, LayoutGrid, List, Map as MapIcon, SlidersHorizontal, X } from "lucide-react";
-import type { Neighborhood, PropertyQuery, Purpose, SortKey } from "@/lib/api/types";
+import type { Neighborhood, Paged, Property, PropertyQuery, Purpose, SortKey } from "@/lib/api/types";
 import { fetchProperties } from "@/lib/api/client";
 import { activeFilterKeys, parseQuery, serializeQuery } from "@/lib/search";
 import { useAsync, useFormat } from "@/lib/hooks";
@@ -23,7 +23,7 @@ const SORTS: SortKey[] = ["relevance", "newest", "price-asc", "price-desc"];
  * The listings engine behind /properties, /buy, /rent and /map.
  * All state lives in the URL (shareable searches); every control changes the query sent to /api/properties.
  */
-export function ListingsExperience({ areas, lockPurpose, variant = "listings" }: { areas: Neighborhood[]; lockPurpose?: Purpose; variant?: "listings" | "explorer" }) {
+export function ListingsExperience({ areas, lockPurpose, variant = "listings", initial }: { areas: Neighborhood[]; lockPurpose?: Purpose; variant?: "listings" | "explorer"; initial?: { key: string; data: Paged<Property> } }) {
   const { t, lang, searches, saveSearch } = useApp();
   const f = useFormat();
   const router = useRouter();
@@ -57,7 +57,7 @@ export function ListingsExperience({ areas, lockPurpose, variant = "listings" }:
   const needAll = view === "map" || explorer;
   const apiQuery: PropertyQuery = { ...query, page: 1, pageSize: needAll ? 100 : pages * PAGE };
   const key = serializeQuery(apiQuery).toString();
-  const { data, loading, error } = useAsync(key, (signal) => fetchProperties(apiQuery, signal), reload);
+  const { data, loading, error } = useAsync(key, (signal) => fetchProperties(apiQuery, signal), reload, initial);
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
 

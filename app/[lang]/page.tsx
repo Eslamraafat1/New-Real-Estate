@@ -1,3 +1,5 @@
+import { HomeDataProvider } from "@/components/home/HomeDataContext";
+import { DictScope } from "@/components/providers/DictScope";
 import { CoordinateMarquee, StatsBand } from "@/components/fx/AtlasBands";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -41,9 +43,22 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
     listArticles(),
   ]);
   const data: HomeData = { properties: props.items, neighborhoods, agents, developments, articles };
+  // What the interactive (client) sections receive. Long-form fields they never render are stripped so the
+  // homepage HTML stays small; server sections below keep the full `data`.
+  const slim: HomeData = {
+    ...data,
+    properties: data.properties.map((p) => ({
+      ...p,
+      description: { en: "", ar: "" },
+      floorPlan: p.floorPlan ? { ...p.floorPlan, floors: p.floorPlan.floors.slice(0, 1) } : undefined,
+    })),
+    articles: data.articles.map((a) => ({ ...a, body: { en: [], ar: [] } })),
+  };
 
+  const d = getDictionary(lang);
   return (
-    <>
+    <DictScope ns={{ home: d.home, home2: d.home2, home3: d.home3, property: d.property }}>
+      <HomeDataProvider data={slim}>
       <Hero data={data} lang={lang} />
       <StatsBand data={data} lang={lang} />
       <FindCoordinates data={data} lang={lang} />
@@ -65,6 +80,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
       <MeetPeople data={data} lang={lang} />
       <StoriesOfPlace data={data} lang={lang} />
       <NextChapter data={data} lang={lang} />
-    </>
+      </HomeDataProvider>
+    </DictScope>
   );
 }

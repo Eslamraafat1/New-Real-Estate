@@ -52,7 +52,7 @@ export function SectionIndex({ items }: { items: IndexItem[] }) {
   return (
     <>
       {/* compact bar: below xl */}
-      <nav aria-label={t.property.sections} className="pd-bar sticky top-[var(--header-h)] z-30 border-b border-line bg-paper/92 backdrop-blur-md xl:hidden">
+      <nav aria-label={t.property.sections} className="pd-bar sticky top-[var(--header-h)] z-30 border-b border-line bg-paper/92  xl:hidden">
         <ul ref={bar} className="no-scrollbar wrap flex snap-x gap-1.5 overflow-x-auto py-2">
           {items.map((it, i) => (
             <li key={it.id} className="pd-pill shrink-0">

@@ -38,12 +38,15 @@ interface AsyncState<T> { key: string; data?: T; error?: unknown }
  * Keyed async loader: `loading` is derived (state.key !== key), so there is no synchronous
  * setState in the effect. Aborts stale requests.
  */
-export function useAsync<T>(key: string, fn: (signal: AbortSignal) => Promise<T>, reloadToken = 0) {
-  const [state, setState] = useState<AsyncState<T>>({ key: "" });
+export function useAsync<T>(key: string, fn: (signal: AbortSignal) => Promise<T>, reloadToken = 0, initial?: { key: string; data: T }) {
+  // `initial` lets a server-rendered first result seed the state so the first view needs no client fetch.
+  const [state, setState] = useState<AsyncState<T>>(() => (initial ? { key: `${initial.key}#0`, data: initial.data } : { key: "" }));
+  const seeded = useRef(initial ? `${initial.key}#0` : null);
   const fnRef = useRef(fn);
   useEffect(() => { fnRef.current = fn; });
   const full = `${key}#${reloadToken}`;
   useEffect(() => {
+    if (seeded.current === full) { seeded.current = null; return; }
     const ac = new AbortController();
     fnRef.current(ac.signal).then(
       (data) => { if (!ac.signal.aborted) setState({ key: full, data }); },

@@ -11,13 +11,13 @@ import { CursorFx } from "@/components/fx/CursorFx";
 import { ScrollRuler } from "@/components/fx/ScrollRuler";
 import { Preloader } from "@/components/fx/Preloader";
 import { dirOf, isLocale, locales } from "@/lib/i18n/config";
-import { getDictionary } from "@/lib/i18n";
+import { getDictionary, type Dict } from "@/lib/i18n";
 import { apiConfig } from "@/lib/api/config";
 
-const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], display: "swap" });
+const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], weight: "400", display: "swap" });
 const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], display: "swap" });
-const naskh = Noto_Naskh_Arabic({ variable: "--font-naskh", subsets: ["arabic"], weight: ["400", "500", "600", "700"], display: "swap" });
-const plex = IBM_Plex_Sans_Arabic({ variable: "--font-plex-ar", subsets: ["arabic"], weight: ["400", "500", "600", "700"], display: "swap" });
+const naskh = Noto_Naskh_Arabic({ variable: "--font-naskh", subsets: ["arabic"], weight: ["400", "500", "600", "700"], display: "swap", preload: false });
+const plex = IBM_Plex_Sans_Arabic({ variable: "--font-plex-ar", subsets: ["arabic"], weight: ["400", "500", "600", "700"], display: "swap", preload: false });
 const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
 
 export function generateStaticParams() {
@@ -51,7 +51,11 @@ const themeScript = `(function(){try{var p=localStorage.getItem('atlas-theme');p
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
-  const dict = getDictionary(lang);
+  const full = getDictionary(lang);
+  // Only core namespaces go to the browser; routes add more through <DictScope>.
+  const { home, home2, home3, property, admin, pages, ...core } = full;
+  void home; void home2; void home3; void property; void admin;
+  const dict = { ...core, pages: { error: pages.error } } as unknown as Dict;
   return (
     <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${fraunces.variable} ${manrope.variable} ${naskh.variable} ${plex.variable} ${mono.variable}`}>
       <head>

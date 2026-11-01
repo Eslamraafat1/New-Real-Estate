@@ -51,3 +51,12 @@ Real backend + auth/authorization/audit (see `docs/BACKEND_INTEGRATION.md`), rea
 - Validation this pass (real Chrome via DevTools protocol, production build): found and fixed a runtime crash (GSAP `onUpdate` referencing a `const` before init in the film strip) and mobile horizontal overflow (implicit grid columns). Re-audited document width at 320/360/390/430/768 px on 20+ routes in EN and AR: no horizontal overflow, no console errors on the checked pages. Screenshots reviewed at 1440 px and 390 px.
 - Also checked after this pass: dark theme (home + AR detail), reduced-motion fallbacks (desktop + mobile). Found and fixed stale ScrollTrigger measurements (pins started late/blank) by re-measuring after layout settles (components/fx/FxRoot.tsx).
 - Still not tested: touch gestures on a real device, Lighthouse, screen-reader pass.
+
+## Update — performance pass
+Measured with a CDP-driven Chrome (mobile viewport, 4× CPU throttle, ~1.6 Mbps / 150 ms) against the production build. Numbers on this dev machine are very noisy (same page LCP ranged 2–10 s between runs), so only structural wins were kept:
+- Fonts: 312 KB → ~65 KB on English pages (Arabic fonts no longer preloaded on EN, Fraunces limited to weight 400). Arabic fonts still load on demand on /ar.
+- Listings (/properties, /buy, /rent): first 12 results are server-rendered into the HTML and seed the client state (no API round-trip for the default view); CLS 0.07 → 0.
+- Client dictionary: only core namespaces ship on every page; home / property / admin / journal / agents routes add theirs via `DictScope` (e.g. privacy HTML 157 → 111 KB). All 62 route×language combinations smoke-tested for console errors.
+- Removed backdrop-blur on the sticky header / mobile action bar and the blur filter on heading reveals (paint cost); homepage client sections now read one shared catalog via context.
+- ScrollTrigger pins are re-measured after layout settles.
+Still open: real Lighthouse on a clean machine (not run), main-thread work on very long pages (home ≈ 43 000 px, ~950 KB HTML before gzip), AVIF encoding cost of first image requests on a cold server.

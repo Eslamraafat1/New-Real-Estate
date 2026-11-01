@@ -80,7 +80,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-line bg-paper/90 backdrop-blur-md safe-t" style={{ height: "var(--header-h)" }}>
+      <header className="sticky top-0 z-50 border-b border-line bg-paper safe-t" style={{ height: "var(--header-h)" }}>
         <div className="wrap flex h-full items-center justify-between gap-4">
           <Link href={href("/")} className="flex items-baseline gap-2" aria-label={`${t.common.brand} — ${t.nav.home}`}>
             <span className="display text-xl tracking-[0.18em] sm:text-2xl" style={{ letterSpacing: lang === "ar" ? 0 : undefined }}>{lang === "ar" ? "أطلس" : "ATLAS"}</span>

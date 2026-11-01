@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { dirOf, href as hrefFor, type Locale } from "@/lib/i18n/config";
 import type { Dict } from "@/lib/i18n";
+import { ExtraDictContext } from "./DictScope";
 import { compareStore, favoritesStore, searchesStore, themeStore, type SavedSearch } from "@/lib/store";
 
 type ThemePref = "light" | "dark" | "system";
@@ -120,7 +121,9 @@ export function AppProvider({ lang, dict, children }: { lang: Locale; dict: Dict
 
 export function useApp(): AppCtx {
   const c = useContext(Ctx);
-  if (!c) throw new Error("useApp must be used inside <AppProvider>");
-  return c;
+  const extra = useContext(ExtraDictContext);
+  const merged = useMemo(() => (c && extra ? { ...c, t: { ...c.t, ...extra } as Dict } : c), [c, extra]);
+  if (!merged) throw new Error("useApp must be used inside <AppProvider>");
+  return merged;
 }
 export const useT = () => useApp().t;
