@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * Global, delegated motion layer (one set of listeners for the whole site):
@@ -11,6 +12,25 @@ import { useEffect } from "react";
  * It only touches `style` / helper classes, never React state, and never the pinned hero.
  */
 export function FxRoot() {
+  const pathname = usePathname();
+
+  // Several sections pin themselves with ScrollTrigger and are created at different moments (hydration, idle,
+  // matchMedia). Re-measure once the layout has settled so every pin start/end reflects the final page height.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelled = false;
+    const refresh = async () => {
+      if (cancelled || !document.querySelector(".pin-spacer")) return;
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      ScrollTrigger.sort();
+      ScrollTrigger.refresh();
+    };
+    const timers = [700, 1800, 3500].map((ms) => window.setTimeout(refresh, ms));
+    window.addEventListener("load", refresh);
+    document.fonts?.ready.then(() => window.setTimeout(refresh, 120));
+    return () => { cancelled = true; timers.forEach(clearTimeout); window.removeEventListener("load", refresh); };
+  }, [pathname]);
+
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
