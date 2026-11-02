@@ -1,5 +1,7 @@
 # 🏛️ Atlas Estates — 3D Real Estate Platform
 
+[![E2E Tests](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml/badge.svg)](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml)
+
 An immersive, **bilingual (English / Arabic)** real estate website that presents properties through **interactive 3D scenes** and cinematic, scroll-driven animations.
 
 🔗 **Live demo:** https://new-real-estate-jade.vercel.app
@@ -24,6 +26,10 @@ An immersive, **bilingual (English / Arabic)** real estate website that presents
 | Animation | GSAP, Framer Motion |
 | Icons | Lucide React |
 | Deployment | Vercel |
+
+## 🧪 Testing
+
+Automated **Playwright** end-to-end tests run on every push via **GitHub Actions** (desktop + mobile Chrome). See [`e2e/`](./e2e).
 
 ## 🚀 Getting Started
 
