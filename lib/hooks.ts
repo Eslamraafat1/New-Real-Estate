@@ -46,7 +46,11 @@ export function useAsync<T>(key: string, fn: (signal: AbortSignal) => Promise<T>
   useEffect(() => { fnRef.current = fn; });
   const full = `${key}#${reloadToken}`;
   useEffect(() => {
-    if (seeded.current === full) { seeded.current = null; return; }
+    // The server seed only applies to the very first run. Clear it either way: if the page opened on a
+    // different (filtered) URL, a later return to the seed key must still fetch, or the list stays stale.
+    const seed = seeded.current;
+    seeded.current = null;
+    if (seed === full) return;
     const ac = new AbortController();
     fnRef.current(ac.signal).then(
       (data) => { if (!ac.signal.aborted) setState({ key: full, data }); },

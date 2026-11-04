@@ -128,17 +128,20 @@ function Filmstrip() {
       >
         {p.images.map((im, i) => (
           <figure key={`${i}-${im.src}`} data-slide className="group relative m-0 w-[86%] shrink-0 snap-start sm:w-[78%] lg:w-[66%] xl:w-[60%]">
-            <button
-              type="button"
-              className="relative block aspect-[3/2] w-full overflow-hidden bg-paper2"
-              aria-label={fmt(g.open, { n: i + 1 })}
-              onClick={() => { if (!justDragged.current) openLightbox(i); }}
-              draggable={false}
-            >
-              <AtlasImage src={im.src} alt={tr(im.alt, lang)} fill sizes="(min-width: 1280px) 60vw, (min-width: 1024px) 66vw, (min-width: 640px) 78vw, 86vw" className="img-hover object-cover" draggable={false} />
-              <span className="absolute end-3 top-3 grid h-9 w-9 place-items-center bg-paper/90 text-ink" aria-hidden><Maximize2 size={16} /></span>
-              <span className="annot num absolute start-3 bottom-3 bg-paper/90 px-2 py-1 !text-ink" aria-hidden>{f.num(i + 1, { minimumIntegerDigits: 2 })}</span>
-            </button>
+            {/* Decorative badges sit beside (not inside) the button so its accessible name matches its content (WCAG 2.5.3). */}
+            <div className="relative">
+              <button
+                type="button"
+                className="relative block aspect-[3/2] w-full overflow-hidden bg-paper2"
+                aria-label={fmt(g.open, { n: i + 1 })}
+                onClick={() => { if (!justDragged.current) openLightbox(i); }}
+                draggable={false}
+              >
+                <AtlasImage src={im.src} alt={tr(im.alt, lang)} fill sizes="(min-width: 1280px) 60vw, (min-width: 1024px) 66vw, (min-width: 640px) 78vw, 86vw" className="img-hover object-cover" draggable={false} />
+              </button>
+              <span className="pointer-events-none absolute end-3 top-3 grid h-9 w-9 place-items-center bg-paper/90 text-ink" aria-hidden><Maximize2 size={16} /></span>
+              <span className="annot num pointer-events-none absolute start-3 bottom-3 bg-paper/90 px-2 py-1 !text-ink" aria-hidden>{f.num(i + 1, { minimumIntegerDigits: 2 })}</span>
+            </div>
             <figcaption className="annot annot-ar-ok mt-2 min-h-[1.5em]">{im.caption ? tr(im.caption, lang) : ""}</figcaption>
           </figure>
         ))}

@@ -300,7 +300,7 @@ export function FloorPlanViewer({ plan, propertyTitle, className = "", onShowGal
                                 style={{ pointerEvents: "none", fontFamily: "var(--f-sans)", fontWeight: 500 }}
                               >
                                 {lab.lines.map((ln, li) => (
-                                  <tspan key={li} x={cx} y={cy + (li - (lab.lines.length - 1) / 2) * lab.fs * 1.2 + lab.fs * 0.35}>{ln}</tspan>
+                                  <tspan key={li} x={cx} y={cy + (li - (lab.lines.length - 1) / 2) * lab.fs * 1.2 + lab.fs * 0.35}>{ln}{li < lab.lines.length - 1 ? " " : null}</tspan>
                                 ))}
                               </text>
                             )}

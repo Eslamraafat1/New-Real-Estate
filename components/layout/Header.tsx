@@ -34,8 +34,10 @@ export function LangSwitch({ className = "" }: { className?: string }) {
     router.push(`/${other}${rest}${window.location.search}${window.location.hash}`);
   };
   return (
-    <button type="button" onClick={go} className={`btn btn-sm ${className}`} aria-label={`${t.common.language}: ${other === "ar" ? "العربية" : "English"}`} lang={other}>
-      {other === "ar" ? "العربية" : "EN"}
+    // Accessible name ("Language: EN") contains the visible text, as WCAG 2.5.3 requires.
+    <button type="button" onClick={go} className={`btn btn-sm ${className}`}>
+      <span className="sr-only">{t.common.language}: </span>
+      <span lang={other}>{other === "ar" ? "العربية" : "EN"}</span>
     </button>
   );
 }
@@ -82,9 +84,10 @@ export function Header() {
     <>
       <header className="sticky top-0 z-50 border-b border-line bg-paper safe-t" style={{ height: "var(--header-h)" }}>
         <div className="wrap flex h-full items-center justify-between gap-4">
-          <Link href={href("/")} className="flex items-baseline gap-2" aria-label={`${t.common.brand} — ${t.nav.home}`}>
+          <Link href={href("/")} className="flex items-baseline gap-2">
             <span className="display text-xl tracking-[0.18em] sm:text-2xl" style={{ letterSpacing: lang === "ar" ? 0 : undefined }}>{lang === "ar" ? "أطلس" : "ATLAS"}</span>
             <span className="annot hidden !text-copper sm:inline">{lang === "ar" ? "العقارية" : "Estates"}</span>
+            <span className="sr-only"> — {t.nav.home}</span>
           </Link>
 
           <nav aria-label={t.nav.primary} className="hidden items-center gap-6 lg:flex">
