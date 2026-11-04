@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/SectionHead";
 import { Arrow } from "@/components/ui/Arrow";
 import { getDictionary } from "@/lib/i18n";
 import { href, isLocale } from "@/lib/i18n/config";
+import { JsonLd } from "@/lib/seo/jsonld";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/faq">): Promise<Metadata> {
   const { lang } = await params;
@@ -27,7 +28,7 @@ export default async function FaqPage({ params }: PageProps<"/[lang]/faq">) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <JsonLd data={jsonLd} />
       <PageHeader eyebrow={p.eyebrow} title={p.title} intro={p.intro} />
       <div className="wrap grid gap-12 pb-24 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="border-t border-line">

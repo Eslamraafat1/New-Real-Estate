@@ -14,6 +14,7 @@ import { MobileActionBar, SideCard } from "@/components/property/PropertyActions
 import { AgentBlock } from "@/components/property/AgentBlock";
 import { DevelopmentLink, EssentialsSection, FinanceSection, NeighborhoodSection, PlansSection, SpecsSection, StorySections, buildSections, sectionNumbers } from "@/components/property/PropertyDetailSections";
 import { SectionIndex } from "@/components/property/SectionIndex";
+import { JsonLd, breadcrumbJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
 import "@/components/property/property-fx.css";
 
 export async function generateStaticParams() {
@@ -66,6 +67,16 @@ export default async function PropertyPage({ params }: PageProps<"/[lang]/proper
 
   return (
     <PropertyDetailProvider property={p} agent={agent}>
+      <JsonLd
+        data={[
+          listingJsonLd(p, lang),
+          breadcrumbJsonLd([
+            [t.nav.home, `/${lang}`],
+            [t.nav.listings, `/${lang}/properties`],
+            [tr(p.title, lang), `/${lang}/properties/${p.slug}`],
+          ]),
+        ]}
+      />
       <article className="pd-root">
         <PropertyHero />
         <SectionIndex items={sections} />

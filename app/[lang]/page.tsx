@@ -11,6 +11,7 @@ import { listAgents } from "@/lib/api/agents";
 import { listDevelopments } from "@/lib/api/developments";
 import { listArticles } from "@/lib/api/articles";
 import type { HomeData } from "@/components/home/types";
+import { JsonLd, siteJsonLd } from "@/lib/seo/jsonld";
 import {
   Hero, FindCoordinates, HomeAtlas, PlacesWithPOV, ArchitectureInMotion, CityFloorPlan, HomesByCharacter, DifferentPerspective,
 } from "@/components/home/s1";
@@ -58,6 +59,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
   const d = getDictionary(lang);
   return (
     <DictScope ns={{ home: d.home, home2: d.home2, home3: d.home3, property: d.property }}>
+      <JsonLd data={siteJsonLd(lang)} />
       <HomeDataProvider data={slim}>
       <Hero data={data} lang={lang} />
       <StatsBand data={data} lang={lang} />
