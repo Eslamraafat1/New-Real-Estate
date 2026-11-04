@@ -1,37 +1,159 @@
-# 🏛️ Atlas Estates — 3D Real Estate Platform
+<div align="center">
 
+# Atlas Estates
+
+**A bilingual (English / Arabic RTL) real estate platform built with Next.js 16, React 19 and TypeScript — featuring scroll-driven 3D storytelling, URL-synced property search and a typed, backend-ready API layer.**
+
+[![Next.js](https://img.shields.io/badge/Next.js-16.4.3-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Three.js](https://img.shields.io/badge/Three.js-0.186-000000?logo=threedotjs&logoColor=white)](https://threejs.org/)
+[![GSAP](https://img.shields.io/badge/GSAP-3.15-88CE02?logo=greensock&logoColor=black)](https://gsap.com/)
+[![Playwright](https://img.shields.io/badge/Playwright-1.48-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+<br />
 [![E2E Tests](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml/badge.svg)](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel&logoColor=white)](https://new-real-estate-jade.vercel.app)
 
-An immersive, **bilingual (English / Arabic)** real estate website that presents properties through **interactive 3D scenes** and cinematic, scroll-driven animations.
+[**Live Demo**](https://new-real-estate-jade.vercel.app) · [**Portfolio**](https://new-portfolio-ashy-xi.vercel.app) · [**LinkedIn**](https://www.linkedin.com/in/eslamraafat-dev/)
 
-🔗 **Live demo:** https://new-real-estate-jade.vercel.app
+</div>
+
+<p align="center">
+  <img src="docs/screenshots/desktop.png" alt="Atlas Estates homepage on desktop (1440×900)" width="68%" />
+  &nbsp;
+  <img src="docs/screenshots/mobile.png" alt="Atlas Estates homepage on mobile (iPhone 13)" width="22%" />
+</p>
 
 ---
 
-## ✨ Features
+## Overview
 
-- 🌐 Bilingual UI (EN / AR) with RTL support
-- 🧊 3D scenes with Three.js (React Three Fiber + Drei)
-- 🎬 Cinematic homepage sections and property detail pages
-- 🌀 Scroll-driven animations with GSAP and Framer Motion
-- ⚡ Performance-tuned: optimized fonts and server rendering
-- 📱 Fully responsive layout
+**Atlas Estates** is a concept real estate website for a fictional city, *Meridian Bay*. It presents homes as architecture — contour lines, blueprints, floor plans and a procedural 3D building — while covering the full product surface of a real listings platform: search and filters, a map explorer, property detail pages, compare, saved searches, a mortgage calculator and validated lead forms.
 
-## 🛠 Tech Stack
+> **Portfolio / demo project.** All listings, agents, prices and neighborhood scores are sample data, form submissions are simulated, and the login / account / admin screens are UI demos without real authentication. The data layer is built so a real backend can be swapped in via environment variables (see [`docs/BACKEND_INTEGRATION.md`](docs/BACKEND_INTEGRATION.md)).
 
-| Area | Tools |
-|---|---|
-| Framework | Next.js, React, TypeScript |
-| 3D | Three.js, @react-three/fiber, @react-three/drei |
-| Animation | GSAP, Framer Motion |
+**At a glance:** 29 page routes × 2 locales · 9 JSON Route Handlers · 29 sample properties, 8 neighborhoods, 6 agents, 4 developments, 6 articles.
+
+## Key Features
+
+### Property search & browsing
+- **Listings** (`/properties`, `/buy`, `/rent`) with **URL-synchronised filters** — purpose, type, style, price, beds/baths, area, furnishing, amenities, completion status — plus filter chips, sorting, grid / list / map views and load-more.
+- First 12 results are **server-rendered** into the HTML and seed client state (no extra API round-trip for the default view).
+- **Atlas Explorer** (`/map`): provider-agnostic `MapView` with zoom / pan / pinch / keyboard control, marker clustering, fly-to, and synchronised marker ⇄ list ⇄ preview; mobile map/list toggle with a bottom sheet.
+- **Property detail**: gallery with fullscreen lightbox (keyboard + swipe, RTL-aware), interactive floor-plan viewer (floors, room highlight, zoom/pan), share / copy / brochure actions, sticky mobile action bar.
+- **Compare** (up to 3, differences highlighted), **saved properties** and **saved searches** persisted in `localStorage`.
+- **Mortgage calculator** with the formula and a disclaimer shown to the user.
+- **Forms** (viewing, contact, seller/landlord, valuation) with shared validators that run **on both client and server**.
+
+### 3D & motion
+- Procedural building scene built with **React Three Fiber + Drei**, inside a **GSAP ScrollTrigger**-pinned hero.
+- Scroll-driven homepage chapters: blueprint → photograph, pinned horizontal film strip, construction "progress towers", day → dusk wash, parallax galleries, count-up numbers.
+- **Framer Motion** micro-interactions, a first-visit preloader, a scroll ruler and a custom cursor layer.
+- **Light and dark themes** with a pre-paint theme script (no flash of wrong theme) that respects the system preference.
+
+### Internationalisation & RTL
+- `/en` (LTR) and `/ar` (RTL) route trees; `proxy.ts` redirects locale-less URLs based on `Accept-Language`.
+- **Type-checked dictionaries** — the Arabic dictionary is typed against the English one, so missing keys fail type-checking.
+- Logical CSS utilities (`ms-*`, `pe-*`, `start-*`…) and mirrored directional icons instead of left/right hacks.
+- Locale-aware number, currency, area and date formatting; bilingual `{ en, ar }` data fields.
+- Per-route **dictionary splitting** — only core namespaces ship on every page; route-specific namespaces are added via `DictScope`.
+
+### Accessibility
+- Skip-to-content link, `prefers-reduced-motion` fallbacks (no pinning or 3D under reduced motion), keyboard-operable map, lightbox and floor-plan viewer, native `<dialog>`-based modals.
+
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Framework | **Next.js 16.4.3** (App Router, Cache Components, Partial Prefetching, Turbopack) |
+| UI | **React 19.3**, **TypeScript 5.9** (strict) |
+| Styling | **Tailwind CSS 4.3**, CSS-variable design tokens |
+| 3D | **Three.js 0.186**, @react-three/fiber 9.8, @react-three/drei 10.7 |
+| Animation | **GSAP 3.15** (ScrollTrigger), Framer Motion 14.7 |
 | Icons | Lucide React |
-| Deployment | Vercel |
+| Fonts | `next/font/google` — Fraunces, Manrope, Geist Mono, Noto Naskh Arabic, IBM Plex Sans Arabic |
+| Testing | **Playwright 1.48** (E2E), GitHub Actions |
+| Linting | ESLint 9 + `eslint-config-next` (Core Web Vitals + TypeScript) |
+| Hosting | Vercel |
 
-## 🧪 Testing
+## Architecture Highlights
 
-Automated **Playwright** end-to-end tests run on every push via **GitHub Actions** (desktop + mobile Chrome). See [`e2e/`](./e2e).
+- **Locale routing via `proxy.ts`** (the Next.js 16 replacement for `middleware.ts`): any URL without `/en` or `/ar` is redirected; API routes, `_next` and static files are excluded by the matcher. `app/[lang]/layout.tsx` sets `<html lang dir>` per locale.
+- **Typed data layer** — UI never imports demo data directly. Server Components call services in `lib/api/*` (`listProperties`, `getProperty`, …); Client Components use fetchers in `lib/api/client.ts` that hit same-origin `/api/*` Route Handlers.
+- **Swappable backend** — each service switches on `DATA_SOURCE`: `demo` serves bundled sample data, `remote` proxies to `BACKEND_API_URL` with a server-only bearer token, so secrets never reach the browser.
+- **Shared query model** — `lib/search.ts` provides `parseQuery` / `serializeQuery` / `filterProperties`, used by both the UI (URL state) and the API.
+- **3D loading strategy** — the R3F scene is loaded with `next/dynamic` (`ssr: false`) and only mounts when the browser is idle and WebGL is available; the pinned 3D sequence runs only at ≥ 768px without reduced motion, and a static SVG composition is used otherwise. The canvas caps `dpr` at 1.5 and pauses its render loop (`frameloop="never"`) outside its active scroll range.
 
-## 🚀 Getting Started
+## SEO & Performance
+
+**SEO** (implemented in code)
+- Per-page `generateMetadata` with title templates, descriptions, **canonical URLs** and **`hreflang` alternates** (`en` / `ar`).
+- **Open Graph** (locale-aware `og:locale`) and Twitter card metadata; property pages use the cover photo as `og:image`.
+- Dynamic **`sitemap.xml`** covering every static route plus all properties, neighborhoods, developments, agents and articles in both languages, with `xhtml:link` alternates.
+- **`robots.txt`** that disallows `/api/`, admin, account and login routes.
+- **JSON-LD** structured data on the FAQ page.
+- Server-rendered, statically prerendered pages for both locales.
+
+**Performance**
+- `next/image` with **AVIF / WebP** output and an allow-listed remote host.
+- Code-split heavy components with `next/dynamic` (3D hero scene, lightbox, floor-plan viewer).
+- Font budget: Arabic fonts are not preloaded on English pages and Fraunces is limited to a single weight (documented reduction from ~312 KB to ~65 KB of fonts on English pages).
+- Listings first page is server-rendered (CLS measured at 0.07 → 0 after the change).
+- Paint-heavy effects removed (backdrop blur on sticky header / mobile bar).
+
+Details and measurement notes are in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md).
+
+## Testing & QA
+
+**Automated — Playwright E2E** ([`e2e/`](e2e))
+
+| Area | What is verified |
+| --- | --- |
+| Pages | 7 key pages (home, buy, rent, all listings, a property detail page, mortgage calculator, contact) return **HTTP 200** with the correct `<title>` |
+| i18n | `/en` renders `lang="en" dir="ltr"`; `/ar` renders `lang="ar" dir="rtl"` |
+| Errors | Unknown routes return **HTTP 404** |
+
+- Runs on two projects: **Desktop Chrome** and **mobile Chrome (Pixel 7 emulation)**.
+- **CI:** GitHub Actions ([`.github/workflows/e2e.yml`](.github/workflows/e2e.yml)) runs the suite on every push to `master`, on pull requests and on demand, with retries in CI, traces on first retry, screenshots on failure, and an uploaded HTML report artifact.
+
+```bash
+cd e2e
+npm install
+npx playwright install chromium
+npm test                                   # against the live deployment
+BASE_URL=http://localhost:3000 npm test    # against a local server
+```
+
+**Manual QA** — documented in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md): production build, `tsc --noEmit` and ESLint checks; route smoke tests across both locales; API filter and validation checks (422 with field errors, simulated 201 submissions); horizontal-overflow audits at 320 / 360 / 390 / 430 / 768 px in EN and AR; dark-theme and reduced-motion checks. Known limitations and untested areas are listed there too.
+
+## Project Structure
+
+```
+.
+├── app/
+│   ├── [lang]/              # All pages, per locale (en | ar): listings, property detail, map,
+│   │                        #   compare, neighborhoods, developments, agents, journal, forms…
+│   ├── api/                 # Route Handlers: properties, locations, neighborhoods, agents,
+│   │                        #   developments, inquiries, viewing- & valuation-requests
+│   ├── sitemap.ts           # Dynamic, bilingual sitemap
+│   └── robots.ts
+├── components/              # UI by domain: home (3D/motion chapters), listings, property,
+│                            #   atlas (map), fx, forms, layout, ui…
+├── lib/
+│   ├── api/                 # Typed services, client fetchers, validation, remote proxy, config
+│   ├── i18n/                # Locale config, typed EN/AR dictionaries, formatters
+│   ├── search.ts            # URL ⇄ query parsing and filtering
+│   └── store.ts             # localStorage stores (favorites, compare, searches, theme)
+├── data/demo/               # Sample catalog (fictional city)
+├── e2e/                     # Playwright tests + config
+├── docs/                    # Backend integration + developer guides, screenshots
+└── proxy.ts                 # Locale redirect
+```
+
+## Getting Started
+
+**Prerequisites:** Node.js ≥ 20.9 (required by Next.js 16; CI uses Node 20) and npm.
 
 ```bash
 git clone https://github.com/Eslamraafat1/New-Real-Estate.git
@@ -40,9 +162,44 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:3000.
+Open http://localhost:3000 — you will be redirected to `/en` (or `/ar` if your browser prefers Arabic).
 
-## 👤 Author
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Run ESLint |
 
-**Eslam Raafat** — Frontend Developer & QA Engineer
-[LinkedIn](https://www.linkedin.com/in/eslamraafat-dev) · [GitHub](https://github.com/Eslamraafat1)
+### Environment variables (all optional)
+
+The app runs out of the box on bundled demo data.
+
+| Variable | Scope | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | public | Canonical origin for metadata, sitemap and robots (defaults to `http://localhost:3000`) |
+| `DATA_SOURCE` | server | `demo` (default) or `remote` |
+| `BACKEND_API_URL` | server | Base URL of a real API when `DATA_SOURCE=remote` |
+| `BACKEND_API_KEY` | server | Bearer token for the remote API (never exposed to the browser) |
+| `INQUIRY_WEBHOOK_URL` | server | Optional webhook to forward form submissions |
+| `NEXT_PUBLIC_CURRENCY` | public | Default display currency (ISO 4217, default `USD`) |
+| `NEXT_PUBLIC_MAP_PROVIDER` | public | Map provider switch (default `demo`) |
+
+## Deployment
+
+Deployed on **Vercel** at **https://new-real-estate-jade.vercel.app**. Import the repository in Vercel (framework preset: Next.js) and set `NEXT_PUBLIC_SITE_URL` to the production origin so canonical URLs and the sitemap use the correct domain.
+
+## Documentation
+
+- [`docs/BACKEND_INTEGRATION.md`](docs/BACKEND_INTEGRATION.md) — API contracts, endpoints, environment variables and how to connect a real backend.
+- [`docs/DEV_GUIDE.md`](docs/DEV_GUIDE.md) — conventions for Cache Components, i18n/RTL, design tokens and shared components.
+- [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) — what is done, how it was validated, and known limitations.
+
+## Author
+
+**Eslam Raafat** — Front-End Developer (React · Next.js · TypeScript)
+
+- Portfolio: [new-portfolio-ashy-xi.vercel.app](https://new-portfolio-ashy-xi.vercel.app)
+- LinkedIn: [linkedin.com/in/eslamraafat-dev](https://www.linkedin.com/in/eslamraafat-dev/)
+- GitHub: [@Eslamraafat1](https://github.com/Eslamraafat1)
+- Email: [eslamraafat736@gmail.com](mailto:eslamraafat736@gmail.com)
