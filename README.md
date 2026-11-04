@@ -10,9 +10,9 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Three.js](https://img.shields.io/badge/Three.js-0.186-000000?logo=threedotjs&logoColor=white)](https://threejs.org/)
 [![GSAP](https://img.shields.io/badge/GSAP-3.15-88CE02?logo=greensock&logoColor=black)](https://gsap.com/)
-[![Playwright](https://img.shields.io/badge/Playwright-1.48-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright-1.63-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
 <br />
-[![E2E Tests](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml/badge.svg)](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml)
+[![CI](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml/badge.svg)](https://github.com/Eslamraafat1/New-Real-Estate/actions/workflows/e2e.yml)
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel&logoColor=white)](https://new-real-estate-jade.vercel.app)
 
 [**Live Demo**](https://new-real-estate-jade.vercel.app) · [**Portfolio**](https://new-portfolio-ashy-xi.vercel.app) · [**LinkedIn**](https://www.linkedin.com/in/eslamraafat-dev/)
@@ -61,6 +61,7 @@
 
 ### Accessibility
 - Skip-to-content link, `prefers-reduced-motion` fallbacks (no pinning or 3D under reduced motion), keyboard-operable map, lightbox and floor-plan viewer, native `<dialog>`-based modals.
+- Automated **axe-core** scan in the E2E suite (WCAG 2.1 A/AA, serious + critical) on listings, property detail, contact (EN + AR) and FAQ.
 
 ## Tech Stack
 
@@ -73,7 +74,7 @@
 | Animation | **GSAP 3.15** (ScrollTrigger), Framer Motion 14.7 |
 | Icons | Lucide React |
 | Fonts | `next/font/google` — Fraunces, Manrope, Geist Mono, Noto Naskh Arabic, IBM Plex Sans Arabic |
-| Testing | **Playwright 1.48** (E2E), GitHub Actions |
+| Testing | **Playwright 1.63** (E2E), **@axe-core/playwright** (accessibility), GitHub Actions |
 | Linting | ESLint 9 + `eslint-config-next` (Core Web Vitals + TypeScript) |
 | Hosting | Vercel |
 
@@ -88,12 +89,14 @@
 ## SEO & Performance
 
 **SEO** (implemented in code)
-- Per-page `generateMetadata` with title templates, descriptions, **canonical URLs** and **`hreflang` alternates** (`en` / `ar`).
-- **Open Graph** (locale-aware `og:locale`) and Twitter card metadata; property pages use the cover photo as `og:image`.
-- Dynamic **`sitemap.xml`** covering every static route plus all properties, neighborhoods, developments, agents and articles in both languages, with `xhtml:link` alternates.
-- **`robots.txt`** that disallows `/api/`, admin, account and login routes.
-- **JSON-LD** structured data on the FAQ page.
+- Per-page `generateMetadata` with title templates, descriptions, absolute **canonical URLs** and **`hreflang` alternates** (`en` / `ar`).
+- **Site URL can't leak `localhost`:** `lib/api/config.ts` resolves the origin from `NEXT_PUBLIC_SITE_URL` → Vercel's `VERCEL_PROJECT_PRODUCTION_URL` → the production URL, so canonicals, hreflang, sitemap and robots are always absolute `https://` URLs.
+- **Open Graph / Twitter cards** on every page: a branded 1200×630 image generated with `next/og` (`app/[lang]/opengraph-image.tsx`) as the default, and the cover photo on property pages.
+- Dynamic **`sitemap.xml`** covering every public static route plus all properties, neighborhoods, developments, agents and articles in both languages, with `xhtml:link` alternates. Demo-only pages (login, account, admin, saved, compare) are excluded.
+- **`robots.txt`** disallows `/api/`; the demo-only pages carry `noindex` instead (crawlers must be able to fetch them to see it).
+- **JSON-LD** structured data: `RealEstateAgent` + `WebSite` (with `SearchAction`) on the home page, `RealEstateListing` with an `Offer` (price, currency, sale/lease) and `BreadcrumbList` on property pages, `FAQPage` on the FAQ. Every entity is flagged as a fictional demo via `disambiguatingDescription`.
 - Server-rendered, statically prerendered pages for both locales.
+- *Known limitation:* with Cache Components the first request for an unknown listing slug can stream with HTTP 200 (it renders the not-found page with `noindex`; later requests return 404).
 
 **Performance**
 - `next/image` with **AVIF / WebP** output and an allow-listed remote host.
@@ -106,23 +109,24 @@ Details and measurement notes are in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION
 
 ## Testing & QA
 
-**Automated — Playwright E2E** ([`e2e/`](e2e))
+**Automated — Playwright E2E** ([`e2e/`](e2e)) — 34 tests; 51 runs across two projects (Desktop Chrome + Pixel 7 emulation; viewport-independent SEO/a11y checks run on desktop only).
 
-| Area | What is verified |
+| Suite | What is verified |
 | --- | --- |
-| Pages | 7 key pages (home, buy, rent, all listings, a property detail page, mortgage calculator, contact) return **HTTP 200** with the correct `<title>` |
-| i18n | `/en` renders `lang="en" dir="ltr"`; `/ar` renders `lang="ar" dir="rtl"` |
-| Errors | Unknown routes return **HTTP 404** |
+| **User flows** (`flows.spec.js`) | Listings: a type filter updates the result count (cross-checked against `/api/properties`), the URL (`?type=…`) and the active-filter chips, survives a reload, and *Clear all* restores the full list; sorting by price updates the URL and order; an impossible search shows the empty state. Property detail: lightbox opens, ←/→/End keys and buttons navigate (with wrap-around), Esc and the close button dismiss it. Compare: add from a listing → tray shows "1 of 3" → comparison page lists it → clear. Contact form: required-field and invalid-email errors with `aria-invalid`, then a successful (simulated) submission. Language switch EN → AR keeps the route and sets `lang="ar" dir="rtl"`. 404 handling with `noindex`. |
+| **SEO** (`seo.spec.js`) | `robots.txt` points to an absolute `https` sitemap; `sitemap.xml` lists both locales, only absolute non-localhost URLs and no demo-only pages; canonical + hreflang are absolute; `og:image` is present and the generated PNG actually renders; JSON-LD parses and contains the expected types (`RealEstateAgent`, `WebSite`, `RealEstateListing` with `Offer`, `BreadcrumbList`, `FAQPage`); login/admin/account are `noindex` and labelled as demos. |
+| **Accessibility** (`a11y.spec.js`) | axe-core finds no serious/critical WCAG 2.1 A/AA violations on 5 pages (EN + AR). Colour contrast is excluded because animated decorative layers make it unreliable to measure automatically. |
+| **Smoke** (`smoke.spec.js`) | 7 key pages return HTTP 200 with the right `<title>`; `/en` is LTR and `/ar` is RTL; unknown routes return 404. |
 
-- Runs on two projects: **Desktop Chrome** and **mobile Chrome (Pixel 7 emulation)**.
-- **CI:** GitHub Actions ([`.github/workflows/e2e.yml`](.github/workflows/e2e.yml)) runs the suite on every push to `master`, on pull requests and on demand, with retries in CI, traces on first retry, screenshots on failure, and an uploaded HTML report artifact.
+- **CI** ([`.github/workflows/e2e.yml`](.github/workflows/e2e.yml)): on every push to `master` and every pull request it runs **ESLint → production build → `tsc --noEmit` → starts the build locally → full E2E suite**, uploading the HTML report. A weekly scheduled job (and manual dispatch) runs the same suite against the live deployment.
+- The suite caught real bugs that are now fixed: opening a filtered listings URL and then clearing the filters left stale results on screen, and several controls had accessible names that didn't contain their visible text (WCAG 2.5.3).
 
 ```bash
-cd e2e
-npm install
+npm run build && npm start                 # terminal 1: local production build on :3000
+cd e2e && npm ci
 npx playwright install chromium
+BASE_URL=http://localhost:3000 npm test    # against the local build
 npm test                                   # against the live deployment
-BASE_URL=http://localhost:3000 npm test    # against a local server
 ```
 
 **Manual QA** — documented in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md): production build, `tsc --noEmit` and ESLint checks; route smoke tests across both locales; API filter and validation checks (422 with field errors, simulated 201 submissions); horizontal-overflow audits at 320 / 360 / 390 / 430 / 768 px in EN and AR; dark-theme and reduced-motion checks. Known limitations and untested areas are listed there too.
@@ -136,6 +140,7 @@ BASE_URL=http://localhost:3000 npm test    # against a local server
 │   │                        #   compare, neighborhoods, developments, agents, journal, forms…
 │   ├── api/                 # Route Handlers: properties, locations, neighborhoods, agents,
 │   │                        #   developments, inquiries, viewing- & valuation-requests
+│   ├── [lang]/opengraph-image.tsx  # Branded default share image (next/og)
 │   ├── sitemap.ts           # Dynamic, bilingual sitemap
 │   └── robots.ts
 ├── components/              # UI by domain: home (3D/motion chapters), listings, property,
@@ -143,10 +148,11 @@ BASE_URL=http://localhost:3000 npm test    # against a local server
 ├── lib/
 │   ├── api/                 # Typed services, client fetchers, validation, remote proxy, config
 │   ├── i18n/                # Locale config, typed EN/AR dictionaries, formatters
+│   ├── seo/jsonld.tsx       # JSON-LD builders (organization, website, listing, breadcrumbs)
 │   ├── search.ts            # URL ⇄ query parsing and filtering
 │   └── store.ts             # localStorage stores (favorites, compare, searches, theme)
 ├── data/demo/               # Sample catalog (fictional city)
-├── e2e/                     # Playwright tests + config
+├── e2e/                     # Playwright E2E: user flows, SEO, accessibility (axe) and smoke tests
 ├── docs/                    # Backend integration + developer guides, screenshots
 └── proxy.ts                 # Locale redirect
 ```
@@ -170,14 +176,15 @@ Open http://localhost:3000 — you will be redirected to `/en` (or `/ar` if your
 | `npm run build` | Production build |
 | `npm run start` | Serve the production build |
 | `npm run lint` | Run ESLint |
+| `npm run typecheck` | `tsc --noEmit` (run after a build or `next typegen`, which generates the route types) |
 
 ### Environment variables (all optional)
 
-The app runs out of the box on bundled demo data.
+The app runs out of the box on bundled demo data. Copy [`.env.example`](.env.example) to `.env.local` to override anything.
 
 | Variable | Scope | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | public | Canonical origin for metadata, sitemap and robots (defaults to `http://localhost:3000`) |
+| `NEXT_PUBLIC_SITE_URL` | public | Canonical origin for metadata, sitemap and robots (falls back to `VERCEL_PROJECT_PRODUCTION_URL`, then `https://new-real-estate-jade.vercel.app`) |
 | `DATA_SOURCE` | server | `demo` (default) or `remote` |
 | `BACKEND_API_URL` | server | Base URL of a real API when `DATA_SOURCE=remote` |
 | `BACKEND_API_KEY` | server | Bearer token for the remote API (never exposed to the browser) |
@@ -187,13 +194,17 @@ The app runs out of the box on bundled demo data.
 
 ## Deployment
 
-Deployed on **Vercel** at **https://new-real-estate-jade.vercel.app**. Import the repository in Vercel (framework preset: Next.js) and set `NEXT_PUBLIC_SITE_URL` to the production origin so canonical URLs and the sitemap use the correct domain.
+Deployed on **Vercel** at **https://new-real-estate-jade.vercel.app**. Import the repository in Vercel (framework preset: Next.js). No environment variables are required: the site URL is taken from Vercel's production domain automatically. Set `NEXT_PUBLIC_SITE_URL` only when serving from a custom domain.
 
 ## Documentation
 
 - [`docs/BACKEND_INTEGRATION.md`](docs/BACKEND_INTEGRATION.md) — API contracts, endpoints, environment variables and how to connect a real backend.
 - [`docs/DEV_GUIDE.md`](docs/DEV_GUIDE.md) — conventions for Cache Components, i18n/RTL, design tokens and shared components.
 - [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) — what is done, how it was validated, and known limitations.
+
+## License
+
+[MIT](LICENSE) © 2026 Eslam Raafat. Photos are loaded from Unsplash under the Unsplash License; all listings, people and the Atlas Estates brand are fictional.
 
 ## Author
 

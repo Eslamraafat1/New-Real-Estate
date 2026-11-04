@@ -40,9 +40,11 @@ Next.js 16.4.3 (App Router, Cache Components, Turbopack), React 19.3, Tailwind v
 - **Global 404** for non-locale paths is handled by the proxy redirect; `not-found.tsx` shows English with an Arabic line (not fully locale-aware).
 - Newsletter form is disabled; login/account/admin have **no real authentication**; favourites/compare/saved searches live in `localStorage` only.
 - The Floor-plan tab in the gallery and the "Floor plans" section mount separate viewer instances.
+- With Cache Components, the **first** request for an unknown property/neighborhood slug can stream with HTTP 200 (documented Next.js behaviour once streaming has started); it still renders the not-found UI with `noindex`, and later requests return 404.
+- A local production build logs one React hydration text-mismatch warning (#418) on the home page in headless Chromium; it is not reproduced on the Vercel deployment and was present before the quality pass.
 
 ## Remaining work for production
-Real backend + auth/authorization/audit (see `docs/BACKEND_INTEGRATION.md`), real map provider, real photography and floor-plan assets, legal review of privacy/terms, e2e + accessibility audit (axe, screen-reader pass), performance budgeting, analytics/consent.
+Real backend + auth/authorization/audit (see `docs/BACKEND_INTEGRATION.md`), real map provider, real photography and floor-plan assets, legal review of privacy/terms, manual screen-reader pass (automated E2E flows + axe scan now exist in `e2e/`), performance budgeting, analytics/consent.
 
 ## Update — creative pass (motion layer + cinematic sections)
 - Added: first-visit preloader, scroll ruler, ring cursor, magnetic buttons, 3D-tilt cards, heading reveals, stats band, coordinate marquee.
