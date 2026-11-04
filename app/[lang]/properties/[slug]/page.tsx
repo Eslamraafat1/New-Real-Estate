@@ -17,6 +17,13 @@ import { SectionIndex } from "@/components/property/SectionIndex";
 import { JsonLd, breadcrumbJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
 import "@/components/property/property-fx.css";
 
+// The whole route must be produced statically. Listed slugs are prerendered at
+// build time; for any other slug Next.js waits for the static result instead of
+// streaming the loading.tsx fallback with a 200, so notFound() below yields a
+// real HTTP 404 on the very first request (dynamicParams is not available with
+// Cache Components).
+export const ensureStatic = "navigation";
+
 export async function generateStaticParams() {
   const slugs = await getPropertySlugs();
   return locales.flatMap((lang) => slugs.map((slug) => ({ lang, slug })));

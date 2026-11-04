@@ -136,3 +136,4 @@ Login, account and admin screens are **UI demos** with no real authentication. B
 4. Supply `lat`/`lng` and wire a real map provider in `MapView.tsx`.
 5. Remove `data/demo/*` and the demo notices (`t.common.demoNotice`, `DEMO_NOTICE`) once real data ships.
 6. Replace the `getPropertySlugs()` / `generateStaticParams` sources with backend lists (or switch detail pages to runtime rendering inside `<Suspense>`).
+   The `[slug]` detail pages export `ensureStatic = "navigation"` (so unknown slugs return a real 404 on the first request); with remote data the getters they call (e.g. `getProperty`, `getAgent`, `getNeighborhood`, `getDevelopment`) must be cached with `"use cache"` + `cacheLife`, otherwise the build fails that requirement.

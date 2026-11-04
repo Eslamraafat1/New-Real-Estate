@@ -153,13 +153,31 @@ test.describe('Not found', () => {
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute('content', /noindex/);
   });
 
-  test('unknown property shows the listing not-found page with a way back', async ({ page }) => {
-    // Note: with Cache Components the very first hit on an unknown slug can stream with HTTP 200
-    // (Next.js documented behaviour); the page is still marked noindex, so we assert that instead.
-    await page.goto('/en/properties/does-not-exist');
+  // A slug no one has requested before, so this really is the first request for it
+  // (the response must not be a streamed 200 that only later turns into a 404).
+  const freshSlug = (info) => `no-such-listing-${info.project.name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  test('unknown property returns HTTP 404 on the first request and offers a way back', async ({ page }, info) => {
+    const res = await page.goto(`/en/properties/${freshSlug(info)}`);
+    expect(res.status()).toBe(404);
     await expect(page.getByRole('heading', { name: 'This property is not in the atlas' })).toBeVisible();
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute('content', /noindex/);
     await page.getByRole('link', { name: /Back to/i }).first().click();
     await expect(page).toHaveURL(/\/en\/properties$/);
+  });
+
+  test('every detail route returns 404 for an unknown slug on the first request; known slugs stay 200', async ({ request }, info) => {
+    const sitemap = await (await request.get('/sitemap.xml')).text();
+    const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+    for (const section of ['properties', 'neighborhoods', 'developments', 'agents', 'journal']) {
+      for (const lang of ['en', 'ar']) {
+        const res = await request.get(`/${lang}/${section}/${freshSlug(info)}`, { maxRedirects: 0 });
+        expect(res.status(), `/${lang}/${section}/<unknown>`).toBe(404);
+      }
+      const known = urls.find((u) => u.startsWith(`/en/${section}/`));
+      expect(known, `sitemap lists a ${section} detail page`).toBeTruthy();
+      const ok = await request.get(known, { maxRedirects: 0 });
+      expect(ok.status(), known).toBe(200);
+    }
   });
 });

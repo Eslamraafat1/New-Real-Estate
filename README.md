@@ -96,7 +96,7 @@
 - **`robots.txt`** disallows `/api/`; the demo-only pages carry `noindex` instead (crawlers must be able to fetch them to see it).
 - **JSON-LD** structured data: `RealEstateAgent` + `WebSite` (with `SearchAction`) on the home page, `RealEstateListing` with an `Offer` (price, currency, sale/lease) and `BreadcrumbList` on property pages, `FAQPage` on the FAQ. Every entity is flagged as a fictional demo via `disambiguatingDescription`.
 - Server-rendered, statically prerendered pages for both locales.
-- *Known limitation:* with Cache Components the first request for an unknown listing slug can stream with HTTP 200 (it renders the not-found page with `noindex`; later requests return 404).
+- Unknown detail slugs (properties, neighborhoods, developments, agents, journal) return a real **HTTP 404** with `noindex` on the very first request: the detail routes export `ensureStatic = "navigation"`, so Next.js waits for the static result instead of streaming a fallback with a 200 (`dynamicParams` is not available with Cache Components).
 
 **Performance**
 - `next/image` with **AVIF / WebP** output and an allow-listed remote host.
@@ -109,17 +109,18 @@ Details and measurement notes are in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION
 
 ## Testing & QA
 
-**Automated — Playwright E2E** ([`e2e/`](e2e)) — 34 tests; 51 runs across two projects (Desktop Chrome + Pixel 7 emulation; viewport-independent SEO/a11y checks run on desktop only).
+**Automated — Playwright E2E** ([`e2e/`](e2e)) — 43 tests; 69 runs across two projects (Desktop Chrome + Pixel 7 emulation; viewport-independent SEO/a11y checks run on desktop only).
 
 | Suite | What is verified |
 | --- | --- |
-| **User flows** (`flows.spec.js`) | Listings: a type filter updates the result count (cross-checked against `/api/properties`), the URL (`?type=…`) and the active-filter chips, survives a reload, and *Clear all* restores the full list; sorting by price updates the URL and order; an impossible search shows the empty state. Property detail: lightbox opens, ←/→/End keys and buttons navigate (with wrap-around), Esc and the close button dismiss it. Compare: add from a listing → tray shows "1 of 3" → comparison page lists it → clear. Contact form: required-field and invalid-email errors with `aria-invalid`, then a successful (simulated) submission. Language switch EN → AR keeps the route and sets `lang="ar" dir="rtl"`. 404 handling with `noindex`. |
+| **User flows** (`flows.spec.js`) | Listings: a type filter updates the result count (cross-checked against `/api/properties`), the URL (`?type=…`) and the active-filter chips, survives a reload, and *Clear all* restores the full list; sorting by price updates the URL and order; an impossible search shows the empty state. Property detail: lightbox opens, ←/→/End keys and buttons navigate (with wrap-around), Esc and the close button dismiss it. Compare: add from a listing → tray shows "1 of 3" → comparison page lists it → clear. Contact form: required-field and invalid-email errors with `aria-invalid`, then a successful (simulated) submission. Language switch EN → AR keeps the route and sets `lang="ar" dir="rtl"`. 404 handling: unknown routes and unknown detail slugs (all five detail routes, EN + AR, a fresh slug per run) return HTTP 404 on the **first** request with `noindex`, while known slugs from the sitemap return 200. |
+| **Hydration** (`hydration.spec.js`) | The home page in EN and AR, light and dark colour scheme, normal and reduced motion (16 runs incl. mobile) hydrates with no React hydration mismatch and no console or page errors. |
 | **SEO** (`seo.spec.js`) | `robots.txt` points to an absolute `https` sitemap; `sitemap.xml` lists both locales, only absolute non-localhost URLs and no demo-only pages; canonical + hreflang are absolute; `og:image` is present and the generated PNG actually renders; JSON-LD parses and contains the expected types (`RealEstateAgent`, `WebSite`, `RealEstateListing` with `Offer`, `BreadcrumbList`, `FAQPage`); login/admin/account are `noindex` and labelled as demos. |
 | **Accessibility** (`a11y.spec.js`) | axe-core finds no serious/critical WCAG 2.1 A/AA violations on 5 pages (EN + AR). Colour contrast is excluded because animated decorative layers make it unreliable to measure automatically. |
 | **Smoke** (`smoke.spec.js`) | 7 key pages return HTTP 200 with the right `<title>`; `/en` is LTR and `/ar` is RTL; unknown routes return 404. |
 
 - **CI** ([`.github/workflows/e2e.yml`](.github/workflows/e2e.yml)): on every push to `master` and every pull request it runs **ESLint → production build → `tsc --noEmit` → starts the build locally → full E2E suite**, uploading the HTML report. A weekly scheduled job (and manual dispatch) runs the same suite against the live deployment.
-- The suite caught real bugs that are now fixed: opening a filtered listings URL and then clearing the filters left stale results on screen, and several controls had accessible names that didn't contain their visible text (WCAG 2.5.3).
+- The suite caught real bugs that are now fixed: opening a filtered listings URL and then clearing the filters left stale results on screen; several controls had accessible names that didn't contain their visible text (WCAG 2.5.3); compact prices were formatted differently by Node.js and the browser (`$500.0K` vs `$500K`), causing a React hydration error on the home page; and unknown detail slugs answered the first request with HTTP 200.
 
 ```bash
 npm run build && npm start                 # terminal 1: local production build on :3000
@@ -130,6 +131,10 @@ npm test                                   # against the live deployment
 ```
 
 **Manual QA** — documented in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md): production build, `tsc --noEmit` and ESLint checks; route smoke tests across both locales; API filter and validation checks (422 with field errors, simulated 201 submissions); horizontal-overflow audits at 320 / 360 / 390 / 430 / 768 px in EN and AR; dark-theme and reduced-motion checks. Known limitations and untested areas are listed there too.
+
+## Known issues
+
+- None open. Previously listed issues (first request for an unknown listing slug returning HTTP 200, and a React hydration error #418 on the home page of a local production build) are fixed and covered by E2E tests — see [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) for the remaining untested areas.
 
 ## Project Structure
 

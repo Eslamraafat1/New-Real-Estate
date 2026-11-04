@@ -8,6 +8,10 @@ import { fmt, getDictionary } from "@/lib/i18n";
 import { href, isLocale, locales, tr } from "@/lib/i18n/config";
 import { formatDate } from "@/lib/i18n/format";
 
+// Fully static route: unknown slugs wait for the static render, so notFound()
+// returns a real 404 on the first request (see properties/[slug]/page.tsx).
+export const ensureStatic = "navigation";
+
 export async function generateStaticParams() {
   const all = await listArticles();
   return locales.flatMap((lang) => all.map((a) => ({ lang, slug: a.slug })));

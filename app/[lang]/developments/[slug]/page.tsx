@@ -15,6 +15,10 @@ import { InquiryForm } from "@/components/forms/forms";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { ProgressBar, StatusBadge } from "@/components/development/DevelopmentBits";
 
+// Fully static route: unknown slugs wait for the static render, so notFound()
+// returns a real 404 on the first request (see properties/[slug]/page.tsx).
+export const ensureStatic = "navigation";
+
 export async function generateStaticParams() {
   const devs = await listDevelopments();
   return locales.flatMap((lang) => devs.map((d) => ({ lang, slug: d.slug })));

@@ -6,12 +6,13 @@ End-to-end tests written with **Playwright** (+ **@axe-core/playwright**), run o
 
 | File | Checks |
 |---|---|
-| `tests/flows.spec.js` | Listings filter → result count + URL + reload + clear all; sort by price; empty state; lightbox (click, ←/→/End keys, wrap-around, Esc, close button); compare add → tray → studio → clear; contact form validation + simulated success; EN → AR switch (`lang="ar" dir="rtl"`); 404 handling |
+| `tests/flows.spec.js` | Listings filter → result count + URL + reload + clear all; sort by price; empty state; lightbox (click, ←/→/End keys, wrap-around, Esc, close button); compare add → tray → studio → clear; contact form validation + simulated success; EN → AR switch (`lang="ar" dir="rtl"`); 404 handling (unknown detail slugs return 404 on the first request, known ones 200) |
+| `tests/hydration.spec.js` | Home in EN/AR × light/dark × normal/reduced motion: no hydration mismatch, no console or page errors |
 | `tests/seo.spec.js` | robots.txt, sitemap.xml (absolute https URLs, both locales, no demo-only pages), canonical + hreflang, `og:image` renders, JSON-LD types, `noindex` on login/admin/account |
 | `tests/a11y.spec.js` | axe-core: no serious/critical WCAG 2.1 A/AA violations on 5 pages (EN + AR) |
 | `tests/smoke.spec.js` | Key pages return 200 with the correct title; LTR/RTL; unknown route → 404 |
 
-34 tests, 51 runs (layout-specific and viewport-independent tests run on desktop only).
+43 tests, 69 runs (layout-specific and viewport-independent tests run on desktop only).
 
 ## Run locally
 

@@ -40,8 +40,8 @@ Next.js 16.4.3 (App Router, Cache Components, Turbopack), React 19.3, Tailwind v
 - **Global 404** for non-locale paths is handled by the proxy redirect; `not-found.tsx` shows English with an Arabic line (not fully locale-aware).
 - Newsletter form is disabled; login/account/admin have **no real authentication**; favourites/compare/saved searches live in `localStorage` only.
 - The Floor-plan tab in the gallery and the "Floor plans" section mount separate viewer instances.
-- With Cache Components, the **first** request for an unknown property/neighborhood slug can stream with HTTP 200 (documented Next.js behaviour once streaming has started); it still renders the not-found UI with `noindex`, and later requests return 404.
-- A local production build logs one React hydration text-mismatch warning (#418) on the home page in headless Chromium; it is not reproduced on the Vercel deployment and was present before the quality pass.
+- ~~First request for an unknown detail slug streamed with HTTP 200~~ — fixed: the five `[slug]` detail routes export `ensureStatic = "navigation"`, so unknown slugs return 404 on the first request (E2E: `flows.spec.js` › Not found).
+- ~~React hydration error #418 on the home page of a local production build~~ — fixed. Root cause: `Intl.NumberFormat` compact currency with only `maximumFractionDigits` resolves a different minimum fraction digits in Node 22 (`$500.0K`) than in current Chromium/Vercel's Node (`$500K`); the price-step `<option>`s in the home search differed between server and client. `formatMoney` now sets `minimumFractionDigits: 0` and `formatDate` a fixed `timeZone: "UTC"` (E2E: `hydration.spec.js`).
 
 ## Remaining work for production
 Real backend + auth/authorization/audit (see `docs/BACKEND_INTEGRATION.md`), real map provider, real photography and floor-plan assets, legal review of privacy/terms, manual screen-reader pass (automated E2E flows + axe scan now exist in `e2e/`), performance budgeting, analytics/consent.

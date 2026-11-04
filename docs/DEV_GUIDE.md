@@ -19,6 +19,10 @@ city, "Meridian Bay". Everything is labelled demo.
   component outside `<Suspense>`. Client components that call `useSearchParams()` must be wrapped in `<Suspense>`.
   Non-deterministic values (dates "today") belong in client components/effects, not server render.
 - No `export const dynamic = …` route-segment config (incompatible). Use `loading.tsx` / `<Suspense>`.
+- `[slug]` detail routes export `ensureStatic = "navigation"` (no `dynamicParams` with Cache Components): unknown slugs then
+  wait for the static render and `notFound()` returns a real 404 on the first request instead of a streamed 200.
+- Format numbers/dates only through `lib/i18n/format.ts` (fixed locale, explicit fraction digits, `timeZone: "UTC"`) so
+  server and browser produce identical text — otherwise hydration fails (React #418).
 - Server components must not import client-only hooks. Mark interactive components `"use client"`.
 
 ## i18n (Arabic RTL + English LTR) — mandatory for every string
