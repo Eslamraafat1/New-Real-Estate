@@ -1,6 +1,30 @@
 {
   "name": "new-real-estate",
   "version": "0.1.0",
+  "description": "Immersive bilingual real estate platform with 3D scenes and cinematic animations. Next.js, TypeScript, Three.js (R3F), GSAP, Framer Motion.",
+  "author": "Eslam Raafat <https://new-portfolio-ashy-xi.vercel.app>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eslamraafat1/New-Real-Estate.git"
+  },
+  "homepage": "https://new-real-estate-jade.vercel.app",
+  "bugs": {
+    "url": "https://github.com/Eslamraafat1/New-Real-Estate/issues"
+  },
+  "keywords": [
+    "nextjs",
+    "react",
+    "threejs",
+    "react-three-fiber",
+    "gsap",
+    "framer-motion",
+    "tailwindcss",
+    "typescript",
+    "arabic",
+    "rtl",
+    "portfolio"
+  ],
   "private": true,
   "engines": {
     "node": ">=20.9"
@@ -10,7 +34,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
